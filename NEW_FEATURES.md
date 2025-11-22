@@ -6,6 +6,45 @@ This document highlights the new features added to BridgeCore Flutter SDK based 
 
 ---
 
+## 🆕 Version 0.2.0 - Enhanced `/me` Endpoint
+
+### What's New?
+
+The `/me` endpoint has been significantly enhanced to provide comprehensive user information including:
+
+- ✅ **Odoo Integration Data** - Partner ID, Employee ID
+- ✅ **Security Groups** - Full list of user's Odoo groups
+- ✅ **Permissions System** - Helper methods for permission checks
+- ✅ **Multi-Company Support** - Company IDs and current company
+- ✅ **Custom Fields** - Optional Odoo custom fields
+- ✅ **Automatic Caching** - 5-minute cache for better performance
+
+### Quick Example
+
+```dart
+// Get comprehensive user information
+final userInfo = await BridgeCore.instance.auth.me();
+
+// Check permissions
+if (userInfo.canManagePartners) {
+  // Show partner management features
+}
+
+if (userInfo.isAdmin) {
+  // Show admin panel
+}
+
+// Access Odoo integration data
+print('Partner ID: ${userInfo.partnerId}');
+print('Groups: ${userInfo.groups}');
+```
+
+**See [ME_ENDPOINT.md](ME_ENDPOINT.md) for complete documentation.**
+
+---
+
+---
+
 ## 1️⃣ Odoo Fields Check 🆕
 
 ### What is it?

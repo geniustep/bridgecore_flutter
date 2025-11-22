@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:bridgecore_flutter/bridgecore_flutter.dart';
 import 'pages/odoo_fields_check_demo.dart';
 import 'pages/error_handling_demo.dart';
+import 'pages/profile_page.dart';
 
 void main() {
   // Initialize BridgeCore
@@ -303,6 +304,22 @@ class _HomePageState extends State<HomePage> {
                             label: const Text('Error Handling Demo'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.orange,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const ProfilePage(),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.person),
+                            label: const Text('Profile Page (/me endpoint)'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.purple,
                             ),
                           ),
                         ],

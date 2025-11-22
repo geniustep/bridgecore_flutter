@@ -90,12 +90,16 @@ class Tenant {
   final String name;
   final String slug;
   final String status;
+  final String? odooDatabase;
+  final String? odooVersion;
 
   Tenant({
     required this.id,
     required this.name,
     required this.slug,
     required this.status,
+    this.odooDatabase,
+    this.odooVersion,
   });
 
   bool get isActive => status == 'active';
@@ -108,6 +112,8 @@ class Tenant {
       name: json['name'] as String,
       slug: json['slug'] as String,
       status: json['status'] as String,
+      odooDatabase: json['odoo_database'] as String?,
+      odooVersion: json['odoo_version'] as String?,
     );
   }
 
@@ -117,6 +123,8 @@ class Tenant {
       'name': name,
       'slug': slug,
       'status': status,
+      if (odooDatabase != null) 'odoo_database': odooDatabase,
+      if (odooVersion != null) 'odoo_version': odooVersion,
     };
   }
 }

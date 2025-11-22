@@ -115,17 +115,96 @@ if (session.odooFieldsData?.success == true) {
   print('Department: ${customData?['x_department']}');
 }
 
+// Get Current User Info 🆕
+final userInfo = await BridgeCore.instance.auth.me();
+print('Partner ID: ${userInfo.partnerId}');
+print('Is Admin: ${userInfo.isAdmin}');
+print('Groups: ${userInfo.groups}');
+
+// Get User Info with Custom Fields 🆕
+final userInfoWithFields = await BridgeCore.instance.auth.me(
+  odooFieldsCheck: OdooFieldsCheck(
+    model: 'res.users',
+    listFields: ['phone', 'mobile', 'signature'],
+  ),
+);
+print('Phone: ${userInfoWithFields.odooFieldsData?['phone']}');
+
+// Check Permissions 🆕
+if (userInfo.canManagePartners) {
+  print('User can manage partners');
+}
+
+if (userInfo.hasGroup('base.group_system')) {
+  print('User is system administrator');
+}
+
 // Logout
 await BridgeCore.instance.auth.logout();
-
-// Get current user
-final userInfo = await BridgeCore.instance.auth.me();
 
 // Check if logged in
 if (await BridgeCore.instance.auth.isLoggedIn) {
   // User is logged in
 }
 ```
+
+### User Information & Permissions 🆕
+
+The `/me` endpoint provides comprehensive user information including permissions and Odoo integration:
+
+```dart
+// Get detailed user information
+final userInfo = await BridgeCore.instance.auth.me();
+
+// User Profile
+print('Name: ${userInfo.user.fullName}');
+print('Email: ${userInfo.user.email}');
+print('Role: ${userInfo.user.role}');
+
+// Odoo Integration
+print('Partner ID: ${userInfo.partnerId}');
+print('Employee ID: ${userInfo.employeeId}');
+print('Is Admin: ${userInfo.isAdmin}');
+print('Is Employee: ${userInfo.isEmployee}');
+
+// Permissions & Groups
+print('Groups: ${userInfo.groups}');
+print('Can Manage Partners: ${userInfo.canManagePartners}');
+print('Has Multi-Company Access: ${userInfo.hasMultiCompanyAccess}');
+
+// Check specific group
+if (userInfo.hasGroup('base.group_system')) {
+  print('User is system administrator');
+}
+
+// Check multiple groups
+if (userInfo.hasAnyGroup(['sale.group_sale_manager', 'base.group_erp_manager'])) {
+  print('User can manage sales or is ERP manager');
+}
+
+// Multi-Company
+if (userInfo.isMultiCompany) {
+  print('User has access to ${userInfo.companyIds.length} companies');
+  print('Current company: ${userInfo.currentCompanyId}');
+}
+
+// With custom Odoo fields
+final userInfoWithFields = await BridgeCore.instance.auth.me(
+  odooFieldsCheck: OdooFieldsCheck(
+    model: 'res.users',
+    listFields: ['phone', 'mobile', 'x_employee_code'],
+  ),
+);
+
+final customData = userInfoWithFields.odooFieldsData;
+print('Phone: ${customData?['phone']}');
+print('Employee Code: ${customData?['x_employee_code']}');
+
+// Force refresh (bypass 5-minute cache)
+final freshInfo = await BridgeCore.instance.auth.me(forceRefresh: true);
+```
+
+**See [ME_ENDPOINT.md](ME_ENDPOINT.md) for complete documentation.**
 
 ### Odoo Operations
 

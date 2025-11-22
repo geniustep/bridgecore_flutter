@@ -2,6 +2,143 @@
 
 All notable changes to BridgeCore Flutter SDK will be documented in this file.
 
+## [0.2.0] - 2025-11-22
+
+### 🎉 Added
+
+#### New `/me` Endpoint
+- **Enhanced User Information** - Comprehensive `/me` endpoint support
+  - New `TenantMeResponse` model with full user details
+  - Odoo integration data (partner_id, employee_id)
+  - Security groups and permissions
+  - Multi-company support
+  - Optional custom Odoo fields
+
+#### New Models
+- `TenantMeResponse` - Complete response from `/me` endpoint
+- `TenantMeUser` - Enhanced user model with timestamps
+- `TenantMeInfo` - Enhanced tenant model with Odoo details
+
+#### Permission System
+- `hasGroup()` - Check if user has specific group
+- `hasAnyGroup()` - Check if user has any of specified groups
+- `hasAllGroups()` - Check if user has all specified groups
+- `canManagePartners` - Check partner management permission
+- `hasMultiCompanyAccess` - Check multi-company access
+- `canAccessModule()` - Check module access permission
+
+#### Caching
+- Automatic caching of `/me` response (5 minutes TTL)
+- `forceRefresh` parameter to bypass cache
+- `clearMeCache()` method for manual cache clearing
+- Cache automatically cleared on logout
+
+#### Example App
+- New `ProfilePage` demonstrating `/me` endpoint
+- Permission-based UI examples
+- Custom fields integration demo
+
+#### Documentation
+- `ME_ENDPOINT.md` - Complete guide for `/me` endpoint
+- Updated README with `/me` examples
+- Permission checking examples
+
+### 🔧 Changed
+
+#### Enhanced Models
+- `Tenant` model now includes:
+  - `odooDatabase` - Odoo database name
+  - `odooVersion` - Odoo version (e.g., "18.0")
+
+#### Authentication Service
+- Replaced old `me()` method with enhanced version
+- Added caching support for `/me` endpoint
+- Logout now clears `/me` cache
+
+### 📝 Technical Details
+
+#### Files Added
+- `lib/src/auth/models/tenant_me_response.dart`
+- `example/lib/pages/profile_page.dart`
+- `ME_ENDPOINT.md`
+
+#### Files Modified
+- `lib/src/auth/auth_service.dart` - Added enhanced `me()` method
+- `lib/src/auth/models/tenant_session.dart` - Added odooDatabase & odooVersion
+- `lib/bridgecore_flutter.dart` - Exported new models
+- `example/lib/main.dart` - Added Profile page link
+- `pubspec.yaml` - Version bump to 0.2.0
+
+### 🎯 Use Cases
+
+#### Permission-Based Features
+```dart
+final userInfo = await BridgeCore.instance.auth.me();
+
+if (userInfo.canManagePartners) {
+  // Show partner management features
+}
+
+if (userInfo.isAdmin) {
+  // Show admin panel
+}
+
+if (userInfo.isEmployee) {
+  // Show employee portal
+}
+```
+
+#### Custom Fields Integration
+```dart
+final userInfo = await BridgeCore.instance.auth.me(
+  odooFieldsCheck: OdooFieldsCheck(
+    model: 'res.users',
+    listFields: ['x_employee_code', 'x_department'],
+  ),
+);
+
+final employeeCode = userInfo.odooFieldsData?['x_employee_code'];
+```
+
+### 🔄 Migration Guide
+
+#### From 0.1.0 to 0.2.0
+
+**No breaking changes!** All existing code continues to work.
+
+To use new features:
+
+```dart
+// Old way (still works)
+final session = await auth.login(email: email, password: password);
+// Limited information available
+
+// New way (recommended)
+final session = await auth.login(email: email, password: password);
+final userInfo = await auth.me(); // Get detailed information
+print('Partner ID: ${userInfo.partnerId}');
+print('Groups: ${userInfo.groups}');
+print('Is Admin: ${userInfo.isAdmin}');
+```
+
+### ⚡ Performance
+
+- `/me` response cached for 5 minutes (configurable)
+- Reduced API calls through intelligent caching
+- No performance impact on existing functionality
+
+### 🐛 Bug Fixes
+
+None in this release (new features only)
+
+### 🔒 Security
+
+- Secure permission checking system
+- Group-based access control
+- No changes to token management
+
+---
+
 ## [0.1.0] - 2025-11-22
 
 ### 🎉 Added

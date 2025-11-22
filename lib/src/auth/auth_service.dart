@@ -3,13 +3,18 @@ import '../core/endpoints.dart';
 import 'token_manager.dart';
 import 'models/login_request.dart';
 import 'models/tenant_session.dart';
-import 'models/user_info.dart';
 import 'models/odoo_fields_check.dart';
+import 'models/tenant_me_response.dart';
 
 /// Authentication service
 class AuthService {
   final BridgeCoreHttpClient httpClient;
   final TokenManager tokenManager;
+
+  // Cache for /me response
+  TenantMeResponse? _cachedMeResponse;
+  DateTime? _meResponseCachedAt;
+  static const Duration _meCacheDuration = Duration(minutes: 5);
 
   AuthService({
     required this.httpClient,
@@ -104,19 +109,80 @@ class AuthService {
     }
   }
 
-  /// Get current user information
+
+  /// Get current user information with enhanced Odoo data
   ///
-  /// Returns [UserInfo] with user and tenant details
+  /// Returns comprehensive user info including:
+  /// - User profile from BridgeCore
+  /// - Tenant information
+  /// - Odoo partner_id and employee_id
+  /// - Odoo groups and permissions
+  /// - Company information
+  /// - Optional custom Odoo fields
   ///
-  /// Throws [UnauthorizedException] if not logged in
-  Future<UserInfo> me() async {
-    final response = await httpClient.get(BridgeCoreEndpoints.me);
-    return UserInfo.fromJson(response);
+  /// Example:
+  /// ```dart
+  /// // Basic usage (no custom fields)
+  /// final userInfo = await BridgeCore.instance.auth.me();
+  /// print('Partner ID: ${userInfo.partnerId}');
+  /// print('Is Admin: ${userInfo.isAdmin}');
+  ///
+  /// // With custom fields
+  /// final userInfoWithFields = await BridgeCore.instance.auth.me(
+  ///   odooFieldsCheck: OdooFieldsCheck(
+  ///     model: 'res.users',
+  ///     listFields: ['shuttle_role', 'phone', 'mobile'],
+  ///   ),
+  /// );
+  /// print('Custom Fields: ${userInfoWithFields.odooFieldsData}');
+  ///
+  /// // Force refresh (bypass cache)
+  /// final freshInfo = await BridgeCore.instance.auth.me(forceRefresh: true);
+  /// ```
+  Future<TenantMeResponse> me({
+    OdooFieldsCheck? odooFieldsCheck,
+    bool forceRefresh = false,
+  }) async {
+    // Return cached response if valid and no custom fields requested
+    if (!forceRefresh &&
+        odooFieldsCheck == null &&
+        _cachedMeResponse != null &&
+        _meResponseCachedAt != null &&
+        DateTime.now().difference(_meResponseCachedAt!) < _meCacheDuration) {
+      return _cachedMeResponse!;
+    }
+
+    // Build request body
+    final Map<String, dynamic> body = {};
+    if (odooFieldsCheck != null) {
+      body['odoo_fields_check'] = odooFieldsCheck.toJson();
+    }
+
+    final response = await httpClient.post(
+      BridgeCoreEndpoints.me,
+      body,
+    );
+
+    final meResponse = TenantMeResponse.fromJson(response);
+
+    // Cache only if no custom fields were requested
+    if (odooFieldsCheck == null) {
+      _cachedMeResponse = meResponse;
+      _meResponseCachedAt = DateTime.now();
+    }
+
+    return meResponse;
+  }
+
+  /// Clear cached /me response
+  void clearMeCache() {
+    _cachedMeResponse = null;
+    _meResponseCachedAt = null;
   }
 
   /// Logout current user
   ///
-  /// Clears all stored tokens
+  /// Clears all stored tokens and caches
   Future<void> logout() async {
     try {
       await httpClient.post(BridgeCoreEndpoints.logout, {});
@@ -124,6 +190,7 @@ class AuthService {
       // Continue with logout even if API call fails
     } finally {
       await tokenManager.clearTokens();
+      clearMeCache();
     }
   }
 }
