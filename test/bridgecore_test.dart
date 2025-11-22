@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:bridgecore_flutter/bridgecore_flutter.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  
   group('BridgeCore', () {
     setUp(() {
       // Clear any existing instance
