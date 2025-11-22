@@ -116,6 +116,30 @@ class NetworkException extends BridgeCoreException {
   }) : super(statusCode: 0);
 }
 
+/// 402 - Payment Required (trial expired)
+class PaymentRequiredException extends BridgeCoreException {
+  PaymentRequiredException(
+    super.message, {
+    super.statusCode,
+    super.originalError,
+    super.endpoint,
+    super.method,
+    super.details,
+  });
+}
+
+/// 410 - Gone (account deleted)
+class AccountDeletedException extends BridgeCoreException {
+  AccountDeletedException(
+    super.message, {
+    super.statusCode,
+    super.originalError,
+    super.endpoint,
+    super.method,
+    super.details,
+  });
+}
+
 /// 500 - Server error
 class ServerException extends BridgeCoreException {
   ServerException(

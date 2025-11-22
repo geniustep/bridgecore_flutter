@@ -5,9 +5,11 @@ Official Flutter SDK for BridgeCore API - Connect your Flutter apps to Odoo seam
 ## ✨ Features
 
 - ✅ **Easy Authentication** - Login, refresh, logout with automatic token management
+- ✅ **Odoo Fields Check** 🆕 - Verify custom fields during login
+- ✅ **Enhanced Error Handling** 🆕 - PaymentRequired, AccountDeleted exceptions
 - ✅ **Odoo Operations** - Full CRUD operations (searchRead, create, update, delete, etc.)
 - ✅ **Auto Token Refresh** - Automatic token refresh on expiry
-- ✅ **Error Handling** - Comprehensive error handling with custom exceptions
+- ✅ **Comprehensive Exceptions** - 8 specialized exception types
 - ✅ **Null Safety** - Full null safety support
 - ✅ **Type Safe** - Strongly typed models and responses
 - ✅ **Lightweight** - Minimal dependencies
@@ -58,7 +60,15 @@ try {
   
   print('Logged in as: ${session.user.fullName}');
   print('Tenant: ${session.tenant.name}');
-} on BridgeCoreException catch (e) {
+  print('Token expires in: ${session.expiresIn}s');
+} on PaymentRequiredException catch (e) {
+  // Trial period expired
+  print('Please upgrade your account');
+} on TenantSuspendedException catch (e) {
+  // Account suspended
+  print('Account suspended: ${e.message}');
+} on UnauthorizedException catch (e) {
+  // Invalid credentials
   print('Login failed: ${e.message}');
 }
 ```
@@ -82,11 +92,28 @@ print('Found ${partners.length} partners');
 ### Authentication
 
 ```dart
-// Login
+// Basic Login
 final session = await BridgeCore.instance.auth.login(
   email: 'user@company.com',
   password: 'password123',
 );
+
+// Login with Odoo Fields Check 🆕
+final session = await BridgeCore.instance.auth.login(
+  email: 'user@company.com',
+  password: 'password123',
+  odooFieldsCheck: OdooFieldsCheck(
+    model: 'res.users',
+    listFields: ['x_employee_code', 'x_department', 'x_branch_id'],
+  ),
+);
+
+// Check custom fields result
+if (session.odooFieldsData?.success == true) {
+  final customData = session.odooFieldsData!.data;
+  print('Employee Code: ${customData?['x_employee_code']}');
+  print('Department: ${customData?['x_department']}');
+}
 
 // Logout
 await BridgeCore.instance.auth.logout();
@@ -209,6 +236,14 @@ try {
     model: 'res.partner',
     fields: ['name'],
   );
+} on PaymentRequiredException catch (e) {
+  // 402 - Trial period expired 🆕
+  print('Trial expired: ${e.message}');
+  // Show upgrade screen
+} on AccountDeletedException catch (e) {
+  // 410 - Account deleted 🆕
+  print('Account deleted: ${e.message}');
+  // Show account deleted message
 } on UnauthorizedException catch (e) {
   // 401 - Token expired
   print('Token expired: ${e.message}');
@@ -239,9 +274,11 @@ try {
 
 ```dart
 UnauthorizedException        // 401 - Invalid or expired token
+PaymentRequiredException     // 402 - Trial period expired 🆕
 ForbiddenException          // 403 - No permission
 TenantSuspendedException    // 403 - Tenant account suspended
 NotFoundException           // 404 - Resource not found
+AccountDeletedException      // 410 - Account deleted 🆕
 ValidationException         // 400 - Validation error
 NetworkException            // Network connectivity issues
 ServerException             // 500+ - Server errors
@@ -250,7 +287,55 @@ BridgeCoreException         // Base exception with full details
 
 ## 🎯 Advanced Features
 
-### 1. Field Presets
+### 1. Odoo Fields Check 🆕
+
+Verify custom fields in Odoo during login and fetch their values:
+
+```dart
+// Login with fields check
+final session = await BridgeCore.instance.auth.login(
+  email: 'user@company.com',
+  password: 'password123',
+  odooFieldsCheck: OdooFieldsCheck(
+    model: 'res.users',
+    listFields: ['x_employee_code', 'x_department', 'x_branch_id'],
+  ),
+);
+
+// Check if fields exist and get their values
+if (session.odooFieldsData?.success == true) {
+  final fieldsData = session.odooFieldsData!;
+  
+  // Check if all fields exist
+  if (fieldsData.fieldsExist) {
+    print('All custom fields exist! ✅');
+    
+    // Get field information
+    fieldsData.fieldsInfo?.forEach((fieldName, fieldInfo) {
+      print('Field: ${fieldInfo.name}');
+      print('Type: ${fieldInfo.ttype}');
+      print('Description: ${fieldInfo.fieldDescription}');
+    });
+    
+    // Get actual data
+    final customData = fieldsData.data;
+    print('Employee Code: ${customData?['x_employee_code']}');
+    print('Department: ${customData?['x_department']}');
+    print('Branch ID: ${customData?['x_branch_id']}');
+  } else {
+    print('Some fields are missing ⚠️');
+    print('Error: ${fieldsData.error}');
+  }
+}
+```
+
+**Use Cases:**
+- ✅ Verify employee codes before allowing login
+- ✅ Check if custom fields exist in specific Odoo version
+- ✅ Fetch user department/branch information
+- ✅ Validate custom field configuration
+
+### 2. Field Presets
 
 Use predefined field lists for common models:
 
@@ -307,7 +392,7 @@ final products = await BridgeCore.instance.odoo.searchRead(
 );
 ```
 
-### 2. Smart Field Fallback (Automatic Error Recovery)
+### 3. Smart Field Fallback (Automatic Error Recovery)
 
 Automatically retry requests when invalid fields are detected:
 
@@ -362,7 +447,7 @@ print(cache);
 // Output: {'res.partner': ['invalid_field1', 'invalid_field2']}
 ```
 
-### 3. Retry Interceptor (Network Resilience)
+### 4. Retry Interceptor (Network Resilience)
 
 Automatic retry on transient failures:
 
@@ -397,7 +482,7 @@ Attempt 4: After 6 seconds
 (Exponential backoff: delay = retryDelay * attemptNumber)
 ```
 
-### 4. Caching
+### 5. Caching
 
 In-memory caching with TTL support:
 
@@ -419,7 +504,7 @@ print('Cache entries: ${stats['total_entries']}');
 BridgeCore.instance.clearCache();
 ```
 
-### 5. Metrics & Logging
+### 6. Metrics & Logging
 
 Track requests and get statistics:
 
@@ -448,7 +533,7 @@ endpointStats.forEach((endpoint, stats) {
 });
 ```
 
-### 6. Using Endpoints Constants
+### 7. Using Endpoints Constants
 
 Access endpoint constants for cleaner code:
 
@@ -656,3 +741,4 @@ MIT License
 ## 🤝 Support
 
 For issues and questions, contact support@yourdomain.com
+

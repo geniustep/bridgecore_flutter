@@ -6,6 +6,8 @@ export 'src/auth/auth_service.dart';
 export 'src/auth/models/login_request.dart';
 export 'src/auth/models/tenant_session.dart';
 export 'src/auth/models/user_info.dart';
+export 'src/auth/models/odoo_fields_check.dart';
+export 'src/auth/models/odoo_fields_data.dart';
 
 // Odoo
 export 'src/odoo/odoo_service.dart';

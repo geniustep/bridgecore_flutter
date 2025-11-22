@@ -242,6 +242,15 @@ class BridgeCoreHttpClient {
           details: details,
           originalError: error,
         );
+      case 402:
+        throw PaymentRequiredException(
+          message,
+          statusCode: statusCode,
+          endpoint: requestOptions.path,
+          method: requestOptions.method,
+          details: details,
+          originalError: error,
+        );
       case 403:
         if (message.toLowerCase().contains('suspend')) {
           throw TenantSuspendedException(
@@ -263,6 +272,15 @@ class BridgeCoreHttpClient {
         );
       case 404:
         throw NotFoundException(
+          message,
+          statusCode: statusCode,
+          endpoint: requestOptions.path,
+          method: requestOptions.method,
+          details: details,
+          originalError: error,
+        );
+      case 410:
+        throw AccountDeletedException(
           message,
           statusCode: statusCode,
           endpoint: requestOptions.path,

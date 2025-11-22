@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:bridgecore_flutter/bridgecore_flutter.dart';
+import 'pages/odoo_fields_check_demo.dart';
+import 'pages/error_handling_demo.dart';
 
 void main() {
   // Initialize BridgeCore
   BridgeCore.initialize(
-    baseUrl: 'https://api.yourdomain.com',
+    baseUrl: 'https://bridgecore.geniura.com',
     debugMode: true,
     enableCache: true,
     enableLogging: true,
@@ -249,6 +251,59 @@ class _HomePageState extends State<HomePage> {
                           ElevatedButton(
                             onPressed: _login,
                             child: const Text('Login'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Card(
+                    color: Colors.green.shade50,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.new_releases, color: Colors.green.shade700),
+                              const SizedBox(width: 8),
+                              const Text('New Features',
+                                  style: TextStyle(
+                                      fontSize: 18, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const OdooFieldsCheckDemo(),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.check_circle),
+                            label: const Text('Odoo Fields Check Demo'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const ErrorHandlingDemo(),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.error_outline),
+                            label: const Text('Error Handling Demo'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.orange,
+                            ),
                           ),
                         ],
                       ),

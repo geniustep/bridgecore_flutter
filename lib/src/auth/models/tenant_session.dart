@@ -1,3 +1,5 @@
+import 'odoo_fields_data.dart';
+
 /// Tenant session response after successful login
 class TenantSession {
   final String accessToken;
@@ -6,6 +8,7 @@ class TenantSession {
   final int expiresIn;
   final TenantUser user;
   final Tenant tenant;
+  final OdooFieldsData? odooFieldsData;
 
   TenantSession({
     required this.accessToken,
@@ -14,6 +17,7 @@ class TenantSession {
     required this.expiresIn,
     required this.user,
     required this.tenant,
+    this.odooFieldsData,
   });
 
   factory TenantSession.fromJson(Map<String, dynamic> json) {
@@ -24,6 +28,9 @@ class TenantSession {
       expiresIn: json['expires_in'] as int,
       user: TenantUser.fromJson(json['user'] as Map<String, dynamic>),
       tenant: Tenant.fromJson(json['tenant'] as Map<String, dynamic>),
+      odooFieldsData: json['odoo_fields_data'] != null
+          ? OdooFieldsData.fromJson(json['odoo_fields_data'] as Map<String, dynamic>)
+          : null,
     );
   }
 
@@ -35,6 +42,7 @@ class TenantSession {
       'expires_in': expiresIn,
       'user': user.toJson(),
       'tenant': tenant.toJson(),
+      if (odooFieldsData != null) 'odoo_fields_data': odooFieldsData!.toJson(),
     };
   }
 }

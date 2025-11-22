@@ -4,6 +4,7 @@ import 'token_manager.dart';
 import 'models/login_request.dart';
 import 'models/tenant_session.dart';
 import 'models/user_info.dart';
+import 'models/odoo_fields_check.dart';
 
 /// Authentication service
 class AuthService {
@@ -22,13 +23,32 @@ class AuthService {
   ///
   /// Returns [TenantSession] with tokens and user/tenant info
   ///
+  /// Optionally check Odoo custom fields during login:
+  /// ```dart
+  /// final session = await auth.login(
+  ///   email: 'user@company.com',
+  ///   password: 'password',
+  ///   odooFieldsCheck: OdooFieldsCheck(
+  ///     model: 'res.users',
+  ///     listFields: ['x_employee_code', 'x_department'],
+  ///   ),
+  /// );
+  /// ```
+  ///
   /// Throws [UnauthorizedException] if credentials are invalid
   /// Throws [TenantSuspendedException] if tenant is suspended
+  /// Throws [PaymentRequiredException] if trial period expired
+  /// Throws [AccountDeletedException] if account is deleted
   Future<TenantSession> login({
     required String email,
     required String password,
+    OdooFieldsCheck? odooFieldsCheck,
   }) async {
-    final request = LoginRequest(email: email, password: password);
+    final request = LoginRequest(
+      email: email,
+      password: password,
+      odooFieldsCheck: odooFieldsCheck,
+    );
 
     final response = await httpClient.post(
       BridgeCoreEndpoints.login,
