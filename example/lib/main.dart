@@ -3,6 +3,9 @@ import 'package:bridgecore_flutter/bridgecore_flutter.dart';
 import 'pages/odoo_fields_check_demo.dart';
 import 'pages/error_handling_demo.dart';
 import 'pages/profile_page.dart';
+import 'pages/me_with_fields_demo.dart';
+import 'pages/advanced_operations_demo.dart';
+import 'pages/permissions_demo.dart';
 
 void main() {
   // Initialize BridgeCore
@@ -320,6 +323,54 @@ class _HomePageState extends State<HomePage> {
                             label: const Text('Profile Page (/me endpoint)'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.purple,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const MeWithFieldsDemo(),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.extension),
+                            label: const Text('/me with Custom Fields'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.amber,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const AdvancedOperationsDemo(),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.auto_awesome),
+                            label: const Text('Advanced Operations'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const PermissionsDemo(),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.security),
+                            label: const Text('Permissions Check'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.teal,
                             ),
                           ),
                         ],

@@ -86,6 +86,34 @@ try {
 }
 ```
 
+### 2.1. Get User Info with Custom Odoo Fields
+
+```dart
+// Get basic user info (cached for 5 minutes)
+final userInfo = await BridgeCore.instance.auth.me();
+print('Partner ID: ${userInfo.partnerId}');
+print('Is Admin: ${userInfo.isAdmin}');
+print('Groups: ${userInfo.groups}');
+
+// Get user info with custom Odoo fields
+final userWithFields = await BridgeCore.instance.auth.me(
+  odooFieldsCheck: OdooFieldsCheck(
+    model: 'res.users',
+    listFields: ['shuttle_role', 'phone', 'mobile'],
+  ),
+  forceRefresh: true, // Bypass cache
+);
+
+// Access custom fields
+print('Shuttle Role: ${userWithFields.odooFieldsData?['shuttle_role']}');
+print('Phone: ${userWithFields.odooFieldsData?['phone']}');
+
+// Check permissions
+if (userWithFields.hasGroup('shuttlebee.group_shuttle_driver')) {
+  print('User is a driver');
+}
+```
+
 ### 3. Use Odoo Operations
 
 ```dart

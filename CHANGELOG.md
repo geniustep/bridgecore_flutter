@@ -34,11 +34,18 @@
   - 11 request models
   - 11 response models
 
+- **Enhanced `/me` Endpoint**
+  - Added `meWithFieldsCheck` endpoint constant
+  - Support for POST requests with custom Odoo fields
+  - Retrieve user-specific Odoo fields dynamically
+  - Example demo page for `/me` with fields check
+
 ### Changed
 - Refactored to modular architecture
 - All operations now have typed request/response models
 - Updated `OdooService` to use operation classes
 - Improved documentation with comprehensive examples
+- Enhanced authentication with custom Odoo fields support
 
 ### Coverage
 - **Before:** 17/26 operations (65%)

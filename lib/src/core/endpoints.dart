@@ -24,6 +24,11 @@ class BridgeCoreEndpoints {
   /// GET /api/v1/auth/tenant/me
   static const String me = '/api/v1/auth/tenant/me';
 
+  /// Get current user information with Odoo fields check
+  /// POST /api/v1/auth/tenant/me
+  /// Body: { "odoo_fields_check": { "model": "res.users", "list_fields": ["field1", "field2"] } }
+  static const String meWithFieldsCheck = '/api/v1/auth/tenant/me';
+
   // ════════════════════════════════════════════════════════════
   // Odoo Operations Endpoints
   // ════════════════════════════════════════════════════════════
