@@ -15,6 +15,39 @@ export 'src/odoo/odoo_service.dart';
 export 'src/odoo/field_presets.dart';
 export 'src/odoo/field_fallback_strategy.dart';
 
+// Odoo Operations
+export 'src/odoo/operations/advanced_operations.dart';
+export 'src/odoo/operations/view_operations.dart';
+export 'src/odoo/operations/permission_operations.dart';
+export 'src/odoo/operations/name_operations.dart';
+export 'src/odoo/operations/custom_operations.dart';
+
+// Odoo Request Models
+export 'src/odoo/models/request/onchange_request.dart';
+export 'src/odoo/models/request/read_group_request.dart';
+export 'src/odoo/models/request/default_get_request.dart';
+export 'src/odoo/models/request/copy_request.dart';
+export 'src/odoo/models/request/fields_view_get_request.dart';
+export 'src/odoo/models/request/load_views_request.dart';
+export 'src/odoo/models/request/get_views_request.dart';
+export 'src/odoo/models/request/check_access_rights_request.dart';
+export 'src/odoo/models/request/exists_request.dart';
+export 'src/odoo/models/request/name_create_request.dart';
+export 'src/odoo/models/request/call_method_request.dart';
+
+// Odoo Response Models
+export 'src/odoo/models/response/onchange_response.dart';
+export 'src/odoo/models/response/read_group_response.dart';
+export 'src/odoo/models/response/default_get_response.dart';
+export 'src/odoo/models/response/copy_response.dart';
+export 'src/odoo/models/response/fields_view_get_response.dart';
+export 'src/odoo/models/response/load_views_response.dart';
+export 'src/odoo/models/response/get_views_response.dart';
+export 'src/odoo/models/response/check_access_rights_response.dart';
+export 'src/odoo/models/response/exists_response.dart';
+export 'src/odoo/models/response/name_create_response.dart';
+export 'src/odoo/models/response/call_method_response.dart';
+
 // Core
 export 'src/core/exceptions.dart';
 export 'src/core/endpoints.dart';

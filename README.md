@@ -1,18 +1,31 @@
-# BridgeCore Flutter SDK
+# BridgeCore Flutter SDK v2.0.0
 
-Official Flutter SDK for BridgeCore API - Connect your Flutter apps to Odoo seamlessly.
+Official Flutter SDK for BridgeCore API - Complete Odoo integration with 26 operations.
+
+## 🎉 What's New in v2.0.0
+
+- ✅ **100% Operation Coverage** - All 26 Odoo operations implemented
+- ✅ **9 New Operations** - onchange, readGroup, checkAccessRights, and more
+- ✅ **Modular Architecture** - Clean separation with operation classes
+- ✅ **Full Type Safety** - All operations with typed request/response models
 
 ## ✨ Features
 
+### Core Features
 - ✅ **Easy Authentication** - Login, refresh, logout with automatic token management
-- ✅ **Odoo Fields Check** 🆕 - Verify custom fields during login
-- ✅ **Enhanced Error Handling** 🆕 - PaymentRequired, AccountDeleted exceptions
-- ✅ **Odoo Operations** - Full CRUD operations (searchRead, create, update, delete, etc.)
+- ✅ **26 Odoo Operations** - Complete CRUD, search, advanced, views, permissions, and custom operations
 - ✅ **Auto Token Refresh** - Automatic token refresh on expiry
-- ✅ **Comprehensive Exceptions** - 8 specialized exception types
+- ✅ **Comprehensive Exceptions** - 10 specialized exception types
 - ✅ **Null Safety** - Full null safety support
 - ✅ **Type Safe** - Strongly typed models and responses
-- ✅ **Lightweight** - Minimal dependencies
+
+### Advanced Features
+- ✅ **Onchange Support** 🆕 - Auto-calculate field values (critical for forms)
+- ✅ **Read Group** 🆕 - Aggregate data for reports and analytics
+- ✅ **Permission Checking** 🆕 - Check user access rights
+- ✅ **View Operations** 🆕 - Load view definitions dynamically
+- ✅ **Custom Methods** 🆕 - Call any Odoo method
+- ✅ **Odoo Fields Check** - Verify custom fields during login
 - ✅ **Field Presets** - Predefined field lists for common models
 - ✅ **Smart Fallback** - Automatic retry on invalid fields
 - ✅ **Retry Interceptor** - Automatic retry on network errors
@@ -73,10 +86,10 @@ try {
 }
 ```
 
-### 3. Use Odoo API
+### 3. Use Odoo Operations
 
 ```dart
-// Search and read records
+// Basic Operations
 final partners = await BridgeCore.instance.odoo.searchRead(
   model: 'res.partner',
   domain: [['is_company', '=', true]],
@@ -84,7 +97,31 @@ final partners = await BridgeCore.instance.odoo.searchRead(
   limit: 50,
 );
 
-print('Found ${partners.length} partners');
+// NEW: Onchange (auto-calculate values)
+final result = await BridgeCore.instance.odoo.advanced.onchange(
+  model: 'sale.order.line',
+  values: {'product_id': 5, 'product_uom_qty': 2.0},
+  field: 'product_id',
+  spec: {'product_id': '1', 'price_unit': '1'},
+);
+print('Calculated price: ${result.value?['price_unit']}');
+
+// NEW: Read Group (reports)
+final report = await BridgeCore.instance.odoo.advanced.readGroup(
+  model: 'sale.order',
+  domain: [['state', '=', 'sale']],
+  fields: ['amount_total'],
+  groupby: ['partner_id'],
+);
+
+// NEW: Check Permissions
+final canDelete = await BridgeCore.instance.odoo.permissions.checkAccessRights(
+  model: 'sale.order',
+  operation: 'unlink',
+);
+if (canDelete.hasAccess!) {
+  // Show delete button
+}
 ```
 
 ## 📚 API Reference
@@ -206,24 +243,21 @@ final freshInfo = await BridgeCore.instance.auth.me(forceRefresh: true);
 
 **See [ME_ENDPOINT.md](ME_ENDPOINT.md) for complete documentation.**
 
-### Odoo Operations
+### Odoo Operations (26 Total)
 
+#### CRUD Operations
 ```dart
-// Search and Read
-final records = await BridgeCore.instance.odoo.searchRead(
-  model: 'res.partner',
-  domain: [['is_company', '=', true]],
-  fields: ['name', 'email'],
-  limit: 50,
-);
-
 // Create
 final id = await BridgeCore.instance.odoo.create(
   model: 'res.partner',
-  values: {
-    'name': 'New Company',
-    'email': 'info@company.com',
-  },
+  values: {'name': 'New Company', 'email': 'info@company.com'},
+);
+
+// Read
+final records = await BridgeCore.instance.odoo.read(
+  model: 'res.partner',
+  ids: [1, 2, 3],
+  fields: ['name', 'email'],
 );
 
 // Update
@@ -239,11 +273,143 @@ await BridgeCore.instance.odoo.delete(
   ids: [123],
 );
 
+// Copy 🆕
+final newId = await BridgeCore.instance.odoo.advanced.copy(
+  model: 'product.template',
+  id: 123,
+  defaultValues: {'name': 'Copy of Product'},
+);
+```
+
+#### Search Operations
+```dart
+// Search
+final ids = await BridgeCore.instance.odoo.search(
+  model: 'res.partner',
+  domain: [['is_company', '=', true]],
+  limit: 50,
+);
+
+// Search and Read
+final records = await BridgeCore.instance.odoo.searchRead(
+  model: 'res.partner',
+  domain: [['is_company', '=', true]],
+  fields: ['name', 'email'],
+);
+
 // Count
 final count = await BridgeCore.instance.odoo.searchCount(
   model: 'res.partner',
   domain: [['is_company', '=', true]],
 );
+```
+
+#### Advanced Operations 🆕
+```dart
+// Onchange - Auto-calculate values
+final result = await BridgeCore.instance.odoo.advanced.onchange(
+  model: 'sale.order.line',
+  values: {'product_id': 5, 'product_uom_qty': 2.0},
+  field: 'product_id',
+  spec: {'product_id': '1', 'price_unit': '1', 'discount': '1'},
+);
+print('Price: ${result.value?['price_unit']}');
+print('Discount: ${result.value?['discount']}');
+
+// Read Group - Reports and analytics
+final report = await BridgeCore.instance.odoo.advanced.readGroup(
+  model: 'sale.order',
+  domain: [['state', '=', 'sale']],
+  fields: ['amount_total'],
+  groupby: ['partner_id'],
+  orderby: 'amount_total desc',
+  limit: 10,
+);
+
+// Default Get - Get default field values
+final defaults = await BridgeCore.instance.odoo.advanced.defaultGet(
+  model: 'sale.order',
+  fields: ['partner_id', 'date_order', 'pricelist_id'],
+);
+```
+
+#### View Operations 🆕
+```dart
+// Get view definition (Odoo ≤15)
+final view = await BridgeCore.instance.odoo.views.fieldsViewGet(
+  model: 'res.partner',
+  viewType: 'form',
+);
+
+// Get view definition (Odoo 16+)
+final view = await BridgeCore.instance.odoo.views.getView(
+  model: 'res.partner',
+  viewType: 'form',
+);
+
+// Load multiple views
+final views = await BridgeCore.instance.odoo.views.getViews(
+  model: 'res.partner',
+  views: [[null, 'form'], [null, 'list']],
+);
+```
+
+#### Name Operations
+```dart
+// Name Search
+final results = await BridgeCore.instance.odoo.names.nameSearch(
+  model: 'res.partner',
+  name: 'Company',
+  limit: 10,
+);
+
+// Name Get
+final names = await BridgeCore.instance.odoo.names.nameGet(
+  model: 'res.partner',
+  ids: [1, 2, 3],
+);
+
+// Name Create 🆕
+final record = await BridgeCore.instance.odoo.names.nameCreate(
+  model: 'res.partner',
+  name: 'New Customer',
+);
+print('Created ID: ${record.id}');
+```
+
+#### Permission Operations 🆕
+```dart
+// Check Access Rights
+final canDelete = await BridgeCore.instance.odoo.permissions.checkAccessRights(
+  model: 'sale.order',
+  operation: 'unlink',
+);
+if (canDelete.hasAccess!) {
+  // Show delete button
+}
+
+// Check if records exist
+final existing = await BridgeCore.instance.odoo.permissions.exists(
+  model: 'res.partner',
+  ids: [1, 2, 999, 1000],
+);
+print('Existing IDs: ${existing.existingIds}'); // [1, 2]
+```
+
+#### Custom Methods 🆕
+```dart
+// Call any custom method
+await BridgeCore.instance.odoo.custom.callMethod(
+  model: 'sale.order',
+  method: 'action_confirm',
+  ids: [orderId],
+);
+
+// Convenience methods
+await BridgeCore.instance.odoo.custom.actionConfirm(model: 'sale.order', ids: [orderId]);
+await BridgeCore.instance.odoo.custom.actionCancel(model: 'sale.order', ids: [orderId]);
+await BridgeCore.instance.odoo.custom.actionDraft(model: 'sale.order', ids: [orderId]);
+await BridgeCore.instance.odoo.custom.actionPost(model: 'account.move', ids: [invoiceId]);
 ```
 
 ### Batch Operations

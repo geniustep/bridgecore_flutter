@@ -2,6 +2,11 @@ import '../client/http_client.dart';
 import '../core/endpoints.dart';
 import 'field_presets.dart';
 import 'field_fallback_strategy.dart';
+import 'operations/advanced_operations.dart';
+import 'operations/view_operations.dart';
+import 'operations/permission_operations.dart';
+import 'operations/name_operations.dart';
+import 'operations/custom_operations.dart';
 
 /// Odoo operations service
 ///
@@ -14,7 +19,21 @@ class OdooService {
   // Active fallback strategies
   final Map<String, FieldFallbackStrategy> _activeStrategies = {};
 
-  OdooService({required this.httpClient});
+  // New operation instances
+  late final AdvancedOperations advanced;
+  late final ViewOperations views;
+  late final PermissionOperations permissions;
+  late final NameOperations names;
+  late final CustomOperations custom;
+
+  OdooService({required this.httpClient}) {
+    // Initialize new operations
+    advanced = AdvancedOperations(httpClient);
+    views = ViewOperations(httpClient);
+    permissions = PermissionOperations(httpClient);
+    names = NameOperations(httpClient);
+    custom = CustomOperations(httpClient);
+  }
 
   /// Search and read records
   ///

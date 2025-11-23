@@ -1,5 +1,5 @@
 /// BridgeCore API Endpoints
-/// 
+///
 /// All endpoints for BridgeCore API communication
 class BridgeCoreEndpoints {
   BridgeCoreEndpoints._();
@@ -68,6 +68,66 @@ class BridgeCoreEndpoints {
   /// POST /api/v1/odoo/name_get
   static const String nameGet = '/api/v1/odoo/name_get';
 
+  /// Create record by name only
+  /// POST /api/v1/odoo/name_create
+  static const String nameCreate = '/api/v1/odoo/name_create';
+
+  // ════════════════════════════════════════════════════════════
+  // Advanced Operations
+  // ════════════════════════════════════════════════════════════
+
+  /// Execute onchange - calculate field values automatically
+  /// POST /api/v1/odoo/onchange
+  static const String onchange = '/api/v1/odoo/onchange';
+
+  /// Read grouped data (for reports and analytics)
+  /// POST /api/v1/odoo/read_group
+  static const String readGroup = '/api/v1/odoo/read_group';
+
+  /// Get default values for fields
+  /// POST /api/v1/odoo/default_get
+  static const String defaultGet = '/api/v1/odoo/default_get';
+
+  /// Copy/duplicate a record
+  /// POST /api/v1/odoo/copy
+  static const String copy = '/api/v1/odoo/copy';
+
+  // ════════════════════════════════════════════════════════════
+  // View Operations
+  // ════════════════════════════════════════════════════════════
+
+  /// Get view definition (Odoo ≤15)
+  /// POST /api/v1/odoo/fields_view_get
+  static const String fieldsViewGet = '/api/v1/odoo/fields_view_get';
+
+  /// Get view definition (Odoo 16+)
+  /// POST /api/v1/odoo/get_view
+  static const String getView = '/api/v1/odoo/get_view';
+
+  /// Load multiple views at once (Odoo ≤15)
+  /// POST /api/v1/odoo/load_views
+  static const String loadViews = '/api/v1/odoo/load_views';
+
+  /// Load multiple views at once (Odoo 16+)
+  /// POST /api/v1/odoo/get_views
+  static const String getViews = '/api/v1/odoo/get_views';
+
+  // ════════════════════════════════════════════════════════════
+  // Permission Operations
+  // ════════════════════════════════════════════════════════════
+
+  /// Check access rights for an operation
+  /// POST /api/v1/odoo/check_access_rights
+  static const String checkAccessRights = '/api/v1/odoo/check_access_rights';
+
+  // ════════════════════════════════════════════════════════════
+  // Utility Operations
+  // ════════════════════════════════════════════════════════════
+
+  /// Check if records exist
+  /// POST /api/v1/odoo/exists
+  static const String exists = '/api/v1/odoo/exists';
+
   // ════════════════════════════════════════════════════════════
   // Web Operations (Odoo 14+)
   // ════════════════════════════════════════════════════════════
@@ -105,12 +165,16 @@ class BridgeCoreEndpoints {
   static const String batchExecute = '/api/v1/odoo/batch_execute';
 
   // ════════════════════════════════════════════════════════════
-  // Advanced Operations
+  // Custom Method Operations
   // ════════════════════════════════════════════════════════════
 
-  /// Call any Odoo method
+  /// Call any Odoo method (generic caller)
   /// POST /api/v1/odoo/call_kw
   static const String callKw = '/api/v1/odoo/call_kw';
+
+  /// Call custom method on model
+  /// POST /api/v1/odoo/call_method
+  static const String callMethod = '/api/v1/odoo/call_method';
 
   // ════════════════════════════════════════════════════════════
   // Cache Management
@@ -141,17 +205,34 @@ class BridgeCoreEndpoints {
       refresh,
       logout,
       me,
-      // Odoo Operations
-      searchRead,
-      read,
+      // CRUD Operations
       create,
+      read,
       write,
       unlink,
+      // Search Operations
       search,
+      searchRead,
       searchCount,
-      fieldsGet,
+      // Name Operations
       nameSearch,
       nameGet,
+      nameCreate,
+      // Advanced Operations
+      onchange,
+      readGroup,
+      defaultGet,
+      copy,
+      // View Operations
+      fieldsGet,
+      fieldsViewGet,
+      getView,
+      loadViews,
+      getViews,
+      // Permission Operations
+      checkAccessRights,
+      // Utility Operations
+      exists,
       // Web Operations
       webSearchRead,
       webRead,
@@ -161,8 +242,9 @@ class BridgeCoreEndpoints {
       batchWrite,
       batchUnlink,
       batchExecute,
-      // Advanced
+      // Custom Methods
       callKw,
+      callMethod,
       // Cache
       cacheStats,
       cacheClear,
