@@ -1,5 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:bridgecore_flutter/bridgecore_flutter.dart';
+import 'package:bridgecore_flutter/src/client/http_client.dart';
+import 'package:bridgecore_flutter/src/auth/token_manager.dart';
+import 'package:bridgecore_flutter/src/odoo/odoo_service.dart';
 
 void main() {
   group('OdooService', () {
@@ -12,6 +15,26 @@ void main() {
 
     test('should have odoo service instance', () {
       expect(BridgeCore.instance.odoo, isNotNull);
+    });
+
+    test('searchRead works without fields and reads "records" key', () async {
+      final fakeClient = _FakeHttpClient();
+      fakeClient.nextResponse = {
+        'success': true,
+        'records': [
+          {'id': 1, 'name': 'Trip 1'},
+        ],
+      };
+
+      final service = OdooService(httpClient: fakeClient);
+
+      final records = await service.searchRead(
+        model: 'shuttle.trip',
+      );
+
+      expect(records, isA<List<Map<String, dynamic>>>());
+      expect(records.length, equals(1));
+      expect(records.first['name'], equals('Trip 1'));
     });
 
     // Note: These tests require a real API endpoint and authentication
@@ -55,5 +78,46 @@ void main() {
     });
     */
   });
+}
+
+/// No-op token manager to avoid secure storage in tests
+class _DummyTokenManager extends TokenManager {
+  @override
+  Future<void> saveTokens(String accessToken, String refreshToken) async {}
+
+  @override
+  Future<String?> getAccessToken() async => 'token';
+
+  @override
+  Future<String?> getRefreshToken() async => 'refresh';
+
+  @override
+  Future<bool> hasTokens() async => true;
+
+  @override
+  Future<void> clearTokens() async {}
+}
+
+/// Fake HTTP client that returns preset responses
+class _FakeHttpClient extends BridgeCoreHttpClient {
+  _FakeHttpClient()
+      : super(
+          baseUrl: 'https://example.com',
+          tokenManager: _DummyTokenManager(),
+          enableRetry: false,
+        );
+
+  Map<String, dynamic>? nextResponse;
+
+  @override
+  Future<Map<String, dynamic>> post(
+    String path,
+    Map<String, dynamic> body, {
+    bool includeAuth = true,
+    bool useCache = false,
+    Duration? cacheTTL,
+  }) async {
+    return nextResponse ?? {'records': []};
+  }
 }
 

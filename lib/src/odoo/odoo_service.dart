@@ -179,8 +179,10 @@ class OdooService {
       },
     );
 
-    final result = response['result'] as List;
-    return result.cast<Map<String, dynamic>>();
+    // Some API responses use "records" instead of "result"
+    final list =
+        (response['records'] ?? response['result']) as List<dynamic>? ?? [];
+    return list.cast<Map<String, dynamic>>();
   }
 
   /// Read records by IDs
