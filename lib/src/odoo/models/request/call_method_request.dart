@@ -17,12 +17,25 @@ class CallMethodRequest {
   /// Keyword arguments
   final Map<String, dynamic>? kwargs;
 
+  /// Context for Odoo 18 (language, timezone, company, etc.)
+  ///
+  /// Example:
+  /// ```dart
+  /// context: {
+  ///   'lang': 'ar_001',
+  ///   'tz': 'Asia/Riyadh',
+  ///   'allowed_company_ids': [1],
+  /// }
+  /// ```
+  final Map<String, dynamic>? context;
+
   CallMethodRequest({
     required this.model,
     required this.method,
     this.ids,
     this.args,
     this.kwargs,
+    this.context,
   });
 
   Map<String, dynamic> toJson() => {
@@ -31,5 +44,6 @@ class CallMethodRequest {
         if (ids != null) 'ids': ids,
         if (args != null) 'args': args,
         if (kwargs != null) 'kwargs': kwargs,
+        if (context != null) 'context': context,
       };
 }

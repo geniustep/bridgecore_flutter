@@ -1,5 +1,5 @@
-/// Response model for call_method operation
-class CallMethodResponse {
+/// Response model for call_kw operation
+class CallKwResponse {
   /// Success status
   final bool success;
 
@@ -10,8 +10,6 @@ class CallMethodResponse {
   final String? error;
 
   /// Action dictionary if method returns a window action (Odoo 18)
-  ///
-  /// Contains: type, res_model, view_mode, views, target, etc.
   final Map<String, dynamic>? action;
 
   /// Warnings from Odoo
@@ -20,7 +18,7 @@ class CallMethodResponse {
   /// Error details from Odoo 18
   final Map<String, dynamic>? errorDetails;
 
-  CallMethodResponse({
+  CallKwResponse({
     required this.success,
     this.result,
     this.error,
@@ -35,7 +33,7 @@ class CallMethodResponse {
   /// Check if there are warnings
   bool get hasWarnings => warnings != null && warnings!.isNotEmpty;
 
-  factory CallMethodResponse.fromJson(Map<String, dynamic> json) {
+  factory CallKwResponse.fromJson(Map<String, dynamic> json) {
     if (json.containsKey('result')) {
       final result = json['result'];
 
@@ -45,7 +43,7 @@ class CallMethodResponse {
         actionDict = result;
       }
 
-      return CallMethodResponse(
+      return CallKwResponse(
         success: true,
         result: result,
         action: actionDict,
@@ -67,11 +65,10 @@ class CallMethodResponse {
       errorDetailsMap = errorData;
     }
 
-    return CallMethodResponse(
+    return CallKwResponse(
       success: false,
       error: errorMessage ?? 'Unknown error',
       errorDetails: errorDetailsMap,
     );
   }
 }
-

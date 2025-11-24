@@ -14,6 +14,7 @@ export 'src/auth/models/tenant_me_response.dart';
 export 'src/odoo/odoo_service.dart';
 export 'src/odoo/field_presets.dart';
 export 'src/odoo/field_fallback_strategy.dart';
+export 'src/odoo/odoo_context.dart';
 
 // Odoo Operations
 export 'src/odoo/operations/advanced_operations.dart';
@@ -34,6 +35,7 @@ export 'src/odoo/models/request/check_access_rights_request.dart';
 export 'src/odoo/models/request/exists_request.dart';
 export 'src/odoo/models/request/name_create_request.dart';
 export 'src/odoo/models/request/call_method_request.dart';
+export 'src/odoo/models/request/call_kw_request.dart';
 
 // Odoo Response Models
 export 'src/odoo/models/response/onchange_response.dart';
@@ -47,6 +49,10 @@ export 'src/odoo/models/response/check_access_rights_response.dart';
 export 'src/odoo/models/response/exists_response.dart';
 export 'src/odoo/models/response/name_create_response.dart';
 export 'src/odoo/models/response/call_method_response.dart';
+export 'src/odoo/models/response/call_kw_response.dart';
+
+// Odoo Models
+export 'src/odoo/models/action_result.dart';
 
 // Core
 export 'src/core/exceptions.dart';
