@@ -240,7 +240,7 @@ class BridgeCoreEventBus {
 
   /// Generate unique event ID
   String _generateEventId() {
-    return '${DateTime.now().millisecondsSinceEpoch}_${_totalEventsEmitted}';
+    return '${DateTime.now().millisecondsSinceEpoch}_$_totalEventsEmitted';
   }
 
   /// Wait for specific event (returns Future that completes on first match)

@@ -1,8 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:bridgecore_flutter/bridgecore_flutter.dart';
-import 'package:bridgecore_flutter/src/odoo/operations/custom_operations.dart';
 import 'package:bridgecore_flutter/src/client/http_client.dart';
-import 'package:bridgecore_flutter/src/odoo/odoo_context.dart';
 import 'package:bridgecore_flutter/src/auth/token_manager.dart';
 
 void main() {

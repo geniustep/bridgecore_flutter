@@ -101,6 +101,6 @@ class SyncStatus {
 
   @override
   String toString() {
-    return 'SyncStatus(running: $isRunning, progress: ${progressPercentage}%, stage: $currentStage)';
+    return 'SyncStatus(running: $isRunning, progress: $progressPercentage%, stage: $currentStage)';
   }
 }

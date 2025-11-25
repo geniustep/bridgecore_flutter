@@ -2,7 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:bridgecore_flutter/bridgecore_flutter.dart';
 import 'package:bridgecore_flutter/src/client/http_client.dart';
 import 'package:bridgecore_flutter/src/auth/token_manager.dart';
-import 'package:bridgecore_flutter/src/odoo/odoo_service.dart';
 
 void main() {
   group('OdooService', () {
