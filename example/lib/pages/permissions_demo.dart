@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:bridgecore_flutter/bridgecore_flutter.dart';
 
 class PermissionsDemo extends StatefulWidget {
-  const PermissionsDemo({Key? key}) : super(key: key);
+  const PermissionsDemo({super.key});
 
   @override
   State<PermissionsDemo> createState() => _PermissionsDemoState();
@@ -22,22 +22,26 @@ class _PermissionsDemoState extends State<PermissionsDemo> {
     setState(() => isLoading = true);
 
     try {
-      final canRead = await BridgeCore.instance.odoo.permissions.checkAccessRights(
+      final canRead =
+          await BridgeCore.instance.odoo.permissions.checkAccessRights(
         model: 'sale.order',
         operation: 'read',
       );
 
-      final canWrite = await BridgeCore.instance.odoo.permissions.checkAccessRights(
+      final canWrite =
+          await BridgeCore.instance.odoo.permissions.checkAccessRights(
         model: 'sale.order',
         operation: 'write',
       );
 
-      final canCreate = await BridgeCore.instance.odoo.permissions.checkAccessRights(
+      final canCreate =
+          await BridgeCore.instance.odoo.permissions.checkAccessRights(
         model: 'sale.order',
         operation: 'create',
       );
 
-      final canDelete = await BridgeCore.instance.odoo.permissions.checkAccessRights(
+      final canDelete =
+          await BridgeCore.instance.odoo.permissions.checkAccessRights(
         model: 'sale.order',
         operation: 'unlink',
       );
@@ -51,11 +55,15 @@ class _PermissionsDemoState extends State<PermissionsDemo> {
         };
       });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
     } finally {
-      setState(() => isLoading = false);
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
     }
   }
 
@@ -81,10 +89,14 @@ class _PermissionsDemoState extends State<PermissionsDemo> {
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                         const SizedBox(height: 16),
-                        _buildPermissionTile('Read', permissions['read'] ?? false),
-                        _buildPermissionTile('Write', permissions['write'] ?? false),
-                        _buildPermissionTile('Create', permissions['create'] ?? false),
-                        _buildPermissionTile('Delete', permissions['delete'] ?? false),
+                        _buildPermissionTile(
+                            'Read', permissions['read'] ?? false),
+                        _buildPermissionTile(
+                            'Write', permissions['write'] ?? false),
+                        _buildPermissionTile(
+                            'Create', permissions['create'] ?? false),
+                        _buildPermissionTile(
+                            'Delete', permissions['delete'] ?? false),
                       ],
                     ),
                   ),
@@ -153,4 +165,3 @@ class _PermissionsDemoState extends State<PermissionsDemo> {
     );
   }
 }
-

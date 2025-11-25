@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:bridgecore_flutter/bridgecore_flutter.dart';
 
 class AdvancedOperationsDemo extends StatefulWidget {
-  const AdvancedOperationsDemo({Key? key}) : super(key: key);
+  const AdvancedOperationsDemo({super.key});
 
   @override
   State<AdvancedOperationsDemo> createState() => _AdvancedOperationsDemoState();
@@ -105,7 +105,7 @@ class _AdvancedOperationsDemoState extends State<AdvancedOperationsDemo> {
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<int>(
-                    value: selectedProductId,
+                    initialValue: selectedProductId,
                     decoration: const InputDecoration(
                       labelText: 'Select Product',
                       border: OutlineInputBorder(),
@@ -200,4 +200,3 @@ class _AdvancedOperationsDemoState extends State<AdvancedOperationsDemo> {
     );
   }
 }
-
