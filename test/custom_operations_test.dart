@@ -1,10 +1,9 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:bridgecore_flutter/bridgecore_flutter.dart';
 import 'package:bridgecore_flutter/src/odoo/operations/custom_operations.dart';
 import 'package:bridgecore_flutter/src/client/http_client.dart';
-import 'package:bridgecore_flutter/src/odoo/models/response/call_method_response.dart';
-import 'package:bridgecore_flutter/src/odoo/models/response/call_kw_response.dart';
 import 'package:bridgecore_flutter/src/odoo/odoo_context.dart';
+import 'package:bridgecore_flutter/src/auth/token_manager.dart';
 
 void main() {
   group('CustomOperations - Odoo 18', () {
@@ -388,9 +387,15 @@ void main() {
 }
 
 /// Mock HTTP Client for testing
-class MockHttpClient implements BridgeCoreHttpClient {
+class MockHttpClient extends BridgeCoreHttpClient {
   Map<String, dynamic>? mockResponse;
   Map<String, dynamic>? lastRequest;
+
+  MockHttpClient()
+      : super(
+          baseUrl: 'https://test.example.com',
+          tokenManager: MockTokenManager(),
+        );
 
   @override
   Future<Map<String, dynamic>> post(
@@ -404,7 +409,6 @@ class MockHttpClient implements BridgeCoreHttpClient {
     return mockResponse ?? {'result': true};
   }
 
-  // Implement other required methods with minimal implementations
   @override
   Future<Map<String, dynamic>> get(
     String path, {
@@ -449,13 +453,19 @@ class MockHttpClient implements BridgeCoreHttpClient {
     String savePath, {
     void Function(int received, int total)? onProgress,
   }) async {}
+}
+
+/// Mock Token Manager for testing
+class MockTokenManager extends TokenManager {
+  @override
+  Future<String?> getAccessToken() async => 'mock_access_token';
 
   @override
-  String? getAccessToken() => 'mock_token';
+  Future<String?> getRefreshToken() async => 'mock_refresh_token';
 
   @override
-  void setAccessToken(String token) {}
+  Future<void> saveTokens(String accessToken, String refreshToken) async {}
 
   @override
-  void clearTokens() {}
+  Future<void> clearTokens() async {}
 }
