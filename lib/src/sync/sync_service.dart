@@ -51,7 +51,7 @@ class SyncService {
 
   /// Check if updates are available (quick check)
   ///
-  /// This is a lightweight endpoint that quickly checks if any updates exist
+  /// This uses the webhook check-updates endpoint from BridgeCore Backend
   ///
   /// Example:
   /// ```dart
@@ -63,7 +63,7 @@ class SyncService {
   Future<bool> hasUpdates() async {
     try {
       final response = await httpClient.get(
-        BridgeCoreEndpoints.syncCheckUpdates,
+        BridgeCoreEndpoints.webhookCheckUpdates,
       );
 
       final hasUpdate = response['has_updates'] as bool? ?? false;

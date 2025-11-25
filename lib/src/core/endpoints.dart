@@ -194,140 +194,158 @@ class BridgeCoreEndpoints {
   static const String cacheClear = '/api/v1/odoo/cache/clear';
 
   // ════════════════════════════════════════════════════════════
-  // Webhook Management
+  // Webhook Management (Compatible with BridgeCore Backend)
   // ════════════════════════════════════════════════════════════
 
-  /// Register a new webhook
-  /// POST /api/v1/webhooks/register
-  static const String webhookRegister = '/api/v1/webhooks/register';
+  /// Get webhook events with filtering
+  /// GET /api/v1/webhooks/events
+  static const String webhookEvents = '/api/v1/webhooks/events';
 
-  /// Unregister a webhook
-  /// DELETE /api/v1/webhooks/{id}
-  static const String webhookUnregister = '/api/v1/webhooks';
+  /// Check for updates (quick check)
+  /// GET /api/v1/webhooks/check-updates
+  static const String webhookCheckUpdates = '/api/v1/webhooks/check-updates';
 
-  /// List all registered webhooks
-  /// GET /api/v1/webhooks/list
-  static const String webhookList = '/api/v1/webhooks/list';
+  /// Get webhook configurations
+  /// GET /api/v1/webhooks/configs
+  static const String webhookConfigs = '/api/v1/webhooks/configs';
 
-  /// Get webhook details
-  /// GET /api/v1/webhooks/{id}
-  static const String webhookGet = '/api/v1/webhooks';
+  /// Receive webhook push from Odoo
+  /// POST /api/v1/webhooks/receive
+  static const String webhookReceive = '/api/v1/webhooks/receive';
 
-  /// Update webhook configuration
-  /// PUT /api/v1/webhooks/{id}
-  static const String webhookUpdate = '/api/v1/webhooks';
+  /// Retry failed webhook
+  /// POST /api/v1/webhooks/retry
+  static const String webhookRetry = '/api/v1/webhooks/retry';
 
-  /// Test webhook (trigger manually)
-  /// POST /api/v1/webhooks/{id}/test
-  static const String webhookTest = '/api/v1/webhooks';
+  /// Bulk retry failed webhooks
+  /// POST /api/v1/webhooks/retry/bulk
+  static const String webhookRetryBulk = '/api/v1/webhooks/retry/bulk';
 
-  /// Get webhook delivery logs
-  /// GET /api/v1/webhooks/{id}/logs
-  static const String webhookLogs = '/api/v1/webhooks';
+  /// Cleanup old webhook events
+  /// DELETE /api/v1/webhooks/cleanup
+  static const String webhookCleanup = '/api/v1/webhooks/cleanup';
 
-  // ════════════════════════════════════════════════════════════
-  // Sync & Update Check
-  // ════════════════════════════════════════════════════════════
+  /// Webhook service health check
+  /// GET /api/v1/webhooks/health
+  static const String webhookHealth = '/api/v1/webhooks/health';
 
-  /// Quick check if updates are available
-  /// GET /api/v1/sync/check-updates
-  static const String syncCheckUpdates = '/api/v1/sync/check-updates';
+  /// Get webhook statistics
+  /// GET /api/v1/webhooks/statistics
+  static const String webhookStatistics = '/api/v1/webhooks/statistics';
 
-  /// Get detailed updates information
-  /// GET /api/v1/sync/updates-info
-  static const String syncUpdatesInfo = '/api/v1/sync/updates-info';
+  /// Get enhanced webhook events
+  /// GET /api/v1/webhooks/events/enhanced
+  static const String webhookEventsEnhanced = '/api/v1/webhooks/events/enhanced';
 
-  /// Check updates for specific model
-  /// POST /api/v1/sync/check-model-updates
-  static const String syncCheckModelUpdates = '/api/v1/sync/check-model-updates';
-
-  /// Get sync status
-  /// GET /api/v1/sync/status
-  static const String syncStatus = '/api/v1/sync/status';
-
-  /// Start full sync
-  /// POST /api/v1/sync/start
-  static const String syncStart = '/api/v1/sync/start';
-
-  /// Get sync history
-  /// GET /api/v1/sync/history
-  static const String syncHistory = '/api/v1/sync/history';
-
-  /// Cancel ongoing sync
-  /// POST /api/v1/sync/cancel
-  static const String syncCancel = '/api/v1/sync/cancel';
+  /// Get dead-letter queue statistics
+  /// GET /api/v1/webhooks/dead-letter/stats
+  static const String webhookDeadLetterStats = '/api/v1/webhooks/dead-letter/stats';
 
   // ════════════════════════════════════════════════════════════
-  // Triggers Management
+  // Offline Sync (Compatible with BridgeCore Backend)
   // ════════════════════════════════════════════════════════════
 
-  /// Create a new trigger
-  /// POST /api/v1/triggers/create
-  static const String triggerCreate = '/api/v1/triggers/create';
+  /// Push local changes to server
+  /// POST /api/v1/offline-sync/push
+  static const String offlineSyncPush = '/api/v1/offline-sync/push';
 
-  /// List all triggers
-  /// GET /api/v1/triggers/list
-  static const String triggerList = '/api/v1/triggers/list';
+  /// Pull server changes
+  /// POST /api/v1/offline-sync/pull
+  static const String offlineSyncPull = '/api/v1/offline-sync/pull';
 
-  /// Get trigger details
-  /// GET /api/v1/triggers/{id}
-  static const String triggerGet = '/api/v1/triggers';
+  /// Resolve sync conflicts
+  /// POST /api/v1/offline-sync/resolve-conflicts
+  static const String offlineSyncResolveConflicts = '/api/v1/offline-sync/resolve-conflicts';
 
-  /// Update trigger
-  /// PUT /api/v1/triggers/{id}
-  static const String triggerUpdate = '/api/v1/triggers';
+  /// Get sync state
+  /// GET /api/v1/offline-sync/state
+  static const String offlineSyncState = '/api/v1/offline-sync/state';
 
-  /// Delete trigger
-  /// DELETE /api/v1/triggers/{id}
-  static const String triggerDelete = '/api/v1/triggers';
+  /// Reset sync state
+  /// POST /api/v1/offline-sync/reset
+  static const String offlineSyncReset = '/api/v1/offline-sync/reset';
 
-  /// Enable/disable trigger
-  /// POST /api/v1/triggers/{id}/toggle
-  static const String triggerToggle = '/api/v1/triggers';
+  /// Offline sync health check
+  /// GET /api/v1/offline-sync/health
+  static const String offlineSyncHealth = '/api/v1/offline-sync/health';
 
-  /// Get trigger execution history
-  /// GET /api/v1/triggers/{id}/history
-  static const String triggerHistory = '/api/v1/triggers';
-
-  /// Execute trigger manually
-  /// POST /api/v1/triggers/{id}/execute
-  static const String triggerExecute = '/api/v1/triggers';
+  /// Get offline sync statistics
+  /// GET /api/v1/offline-sync/statistics
+  static const String offlineSyncStatistics = '/api/v1/offline-sync/statistics';
 
   // ════════════════════════════════════════════════════════════
-  // Notifications
+  // Triggers Management (NOT YET SUPPORTED BY BACKEND)
+  // TODO: Implement these endpoints in BridgeCore Backend
   // ════════════════════════════════════════════════════════════
 
-  /// Get user notifications
-  /// GET /api/v1/notifications/list
-  static const String notificationList = '/api/v1/notifications/list';
+  // /// Create a new trigger
+  // /// POST /api/v1/triggers/create
+  // static const String triggerCreate = '/api/v1/triggers/create';
 
-  /// Mark notification as read
-  /// POST /api/v1/notifications/{id}/read
-  static const String notificationMarkRead = '/api/v1/notifications';
+  // /// List all triggers
+  // /// GET /api/v1/triggers/list
+  // static const String triggerList = '/api/v1/triggers/list';
 
-  /// Mark all notifications as read
-  /// POST /api/v1/notifications/read-all
-  static const String notificationReadAll = '/api/v1/notifications/read-all';
+  // /// Get trigger details
+  // /// GET /api/v1/triggers/{id}
+  // static const String triggerGet = '/api/v1/triggers';
 
-  /// Delete notification
-  /// DELETE /api/v1/notifications/{id}
-  static const String notificationDelete = '/api/v1/notifications';
+  // /// Update trigger
+  // /// PUT /api/v1/triggers/{id}
+  // static const String triggerUpdate = '/api/v1/triggers';
 
-  /// Get notification preferences
-  /// GET /api/v1/notifications/preferences
-  static const String notificationPreferences = '/api/v1/notifications/preferences';
+  // /// Delete trigger
+  // /// DELETE /api/v1/triggers/{id}
+  // static const String triggerDelete = '/api/v1/triggers';
 
-  /// Update notification preferences
-  /// PUT /api/v1/notifications/preferences
-  static const String notificationUpdatePreferences = '/api/v1/notifications/preferences';
+  // /// Enable/disable trigger
+  // /// POST /api/v1/triggers/{id}/toggle
+  // static const String triggerToggle = '/api/v1/triggers';
 
-  /// Register device for push notifications
-  /// POST /api/v1/notifications/register-device
-  static const String notificationRegisterDevice = '/api/v1/notifications/register-device';
+  // /// Get trigger execution history
+  // /// GET /api/v1/triggers/{id}/history
+  // static const String triggerHistory = '/api/v1/triggers';
 
-  /// Unregister device
-  /// POST /api/v1/notifications/unregister-device
-  static const String notificationUnregisterDevice = '/api/v1/notifications/unregister-device';
+  // /// Execute trigger manually
+  // /// POST /api/v1/triggers/{id}/execute
+  // static const String triggerExecute = '/api/v1/triggers';
+
+  // ════════════════════════════════════════════════════════════
+  // Notifications (NOT YET SUPPORTED BY BACKEND)
+  // TODO: Implement these endpoints in BridgeCore Backend
+  // ════════════════════════════════════════════════════════════
+
+  // /// Get user notifications
+  // /// GET /api/v1/notifications/list
+  // static const String notificationList = '/api/v1/notifications/list';
+
+  // /// Mark notification as read
+  // /// POST /api/v1/notifications/{id}/read
+  // static const String notificationMarkRead = '/api/v1/notifications';
+
+  // /// Mark all notifications as read
+  // /// POST /api/v1/notifications/read-all
+  // static const String notificationReadAll = '/api/v1/notifications/read-all';
+
+  // /// Delete notification
+  // /// DELETE /api/v1/notifications/{id}
+  // static const String notificationDelete = '/api/v1/notifications';
+
+  // /// Get notification preferences
+  // /// GET /api/v1/notifications/preferences
+  // static const String notificationPreferences = '/api/v1/notifications/preferences';
+
+  // /// Update notification preferences
+  // /// PUT /api/v1/notifications/preferences
+  // static const String notificationUpdatePreferences = '/api/v1/notifications/preferences';
+
+  // /// Register device for push notifications
+  // /// POST /api/v1/notifications/register-device
+  // static const String notificationRegisterDevice = '/api/v1/notifications/register-device';
+
+  // /// Unregister device
+  // /// POST /api/v1/notifications/unregister-device
+  // static const String notificationUnregisterDevice = '/api/v1/notifications/unregister-device';
 
   // ════════════════════════════════════════════════════════════
   // Utility Methods
@@ -390,39 +408,30 @@ class BridgeCoreEndpoints {
       cacheStats,
       cacheClear,
       // Webhooks
-      webhookRegister,
-      webhookUnregister,
-      webhookList,
-      webhookGet,
-      webhookUpdate,
-      webhookTest,
-      webhookLogs,
-      // Sync & Updates
-      syncCheckUpdates,
-      syncUpdatesInfo,
-      syncCheckModelUpdates,
-      syncStatus,
-      syncStart,
-      syncHistory,
-      syncCancel,
-      // Triggers
-      triggerCreate,
-      triggerList,
-      triggerGet,
-      triggerUpdate,
-      triggerDelete,
-      triggerToggle,
-      triggerHistory,
-      triggerExecute,
-      // Notifications
-      notificationList,
-      notificationMarkRead,
-      notificationReadAll,
-      notificationDelete,
-      notificationPreferences,
-      notificationUpdatePreferences,
-      notificationRegisterDevice,
-      notificationUnregisterDevice,
+      webhookEvents,
+      webhookCheckUpdates,
+      webhookConfigs,
+      webhookReceive,
+      webhookRetry,
+      webhookRetryBulk,
+      webhookCleanup,
+      webhookHealth,
+      webhookStatistics,
+      webhookEventsEnhanced,
+      webhookDeadLetterStats,
+      // Offline Sync
+      offlineSyncPush,
+      offlineSyncPull,
+      offlineSyncResolveConflicts,
+      offlineSyncState,
+      offlineSyncReset,
+      offlineSyncHealth,
+      offlineSyncStatistics,
+      // Triggers & Notifications - NOT YET SUPPORTED
+      // triggerCreate,
+      // triggerList,
+      // notificationList,
+      // ...
     ];
   }
 }
