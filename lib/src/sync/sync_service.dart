@@ -193,7 +193,7 @@ class SyncService {
 
       final result = OfflineSyncPullResult.fromJson(response);
 
-      _eventBus.emit(BridgeCoreEventTypes.syncPullCompleted, {
+      _eventBus.emit(BridgeCoreEventTypes.syncCompleted, {
         'device_id': deviceId ?? this.deviceId,
         'total_records': result.totalRecords,
         'models': result.data.keys.toList(),
@@ -206,9 +206,9 @@ class SyncService {
 
       return result;
     } on DioException catch (e) {
-      _eventBus.emit(BridgeCoreEventTypes.syncPullFailed, {
-        'error': e.toString(),
-      });
+      // _eventBus.emit(BridgeCoreEventTypes.syncPullFailed, {
+      //   'error': e.toString(),
+      // });
       _handleSyncError(e);
       rethrow;
     }
@@ -281,9 +281,9 @@ class SyncService {
 
       return result;
     } on DioException catch (e) {
-      _eventBus.emit(BridgeCoreEventTypes.syncPushFailed, {
-        'error': e.toString(),
-      });
+      // _eventBus.emit(BridgeCoreEventTypes. syncPushFailed, {
+      //   'error': e.toString(),
+      // });
       _handleSyncError(e);
       rethrow;
     }

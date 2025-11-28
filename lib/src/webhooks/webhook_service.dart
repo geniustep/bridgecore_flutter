@@ -63,7 +63,7 @@ class WebhookService {
     BridgeCoreLogger.info('Registering webhook for $model.$event');
 
     final response = await httpClient.post(
-      BridgeCoreEndpoints.webhooks,
+      BridgeCoreEndpoints.webhookReceive,
       {
         'model': model,
         'event': event,
@@ -102,7 +102,7 @@ class WebhookService {
     BridgeCoreLogger.info('Unregistering webhook: $webhookId');
 
     final response = await httpClient.delete(
-      '${BridgeCoreEndpoints.webhookUnregister}/$webhookId',
+      '${BridgeCoreEndpoints.webhookCleanup}/$webhookId',
     );
 
     // Remove from cache
@@ -139,7 +139,7 @@ class WebhookService {
     BridgeCoreLogger.info('Updating webhook: $webhookId');
 
     final response = await httpClient.put(
-      '${BridgeCoreEndpoints.webhookUpdate}/$webhookId',
+      '${BridgeCoreEndpoints.webhookRetry}/$webhookId',
       {
         if (callbackUrl != null) 'callback_url': callbackUrl,
         if (filters != null) 'filters': filters,
@@ -181,7 +181,7 @@ class WebhookService {
     if (active != null) queryParams['active'] = active.toString();
 
     final response = await httpClient.get(
-      BridgeCoreEndpoints.webhookList,
+      BridgeCoreEndpoints.webhookEvents,
       queryParams: queryParams,
     );
 
@@ -210,7 +210,7 @@ class WebhookService {
     }
 
     final response = await httpClient.get(
-      '${BridgeCoreEndpoints.webhookGet}/$webhookId',
+      '${BridgeCoreEndpoints.webhookEvents}/$webhookId',
     );
 
     final webhook = WebhookRegistration.fromJson(response['webhook']);
@@ -237,7 +237,7 @@ class WebhookService {
     if (offset != null) queryParams['offset'] = offset.toString();
 
     final response = await httpClient.get(
-      '${BridgeCoreEndpoints.webhookLogs}/$webhookId/logs',
+      '${BridgeCoreEndpoints.webhookEvents}/$webhookId/logs',
       queryParams: queryParams,
     );
 
@@ -260,7 +260,7 @@ class WebhookService {
     BridgeCoreLogger.info('Testing webhook: $webhookId');
 
     final response = await httpClient.post(
-      '${BridgeCoreEndpoints.webhookTest}/$webhookId/test',
+      '${BridgeCoreEndpoints.webhookRetry}/$webhookId/test',
       {},
     );
 
