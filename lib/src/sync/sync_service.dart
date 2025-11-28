@@ -444,11 +444,10 @@ class SyncService {
         'device_id': deviceId ?? this.deviceId ?? 'default',
       };
 
-      // Build URL with query params
-      final url =
-          '${BridgeCoreEndpoints.smartSyncV2Reset}?user_id=$userId&device_id=${deviceId ?? this.deviceId ?? 'default'}';
+      final uri = Uri.parse(BridgeCoreEndpoints.smartSyncV2Reset)
+          .replace(queryParameters: queryParams);
 
-      final response = await httpClient.post(url, {});
+      final response = await httpClient.post(uri.toString(), {});
 
       _eventBus.emit(BridgeCoreEventTypes.syncStateReset, {
         'user_id': userId,

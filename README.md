@@ -1,15 +1,15 @@
-# BridgeCore Flutter SDK v2.1.0
+# BridgeCore Flutter SDK v3.0.0
 
-Official Flutter SDK for BridgeCore API - Complete Odoo 18 integration with full context management.
+Official Flutter SDK for BridgeCore API - Complete Odoo 18 integration with full sync, triggers, and notifications support.
 
-## 🎉 What's New in v2.1.0
+## 🎉 What's New in v3.0.0
 
-- ✅ **Full Odoo 18 Support** - Context management, enhanced errors, action handling
-- ✅ **Context Manager** - Global context for language, timezone, and multi-company
-- ✅ **7 New Action Methods** - validate, done, approve, reject, assign, unlock, executeButtonAction
-- ✅ **callKw Method** - Generic RPC caller compatible with execute_kw
-- ✅ **Action Result Handler** - Parse and handle window actions, reports, wizards
-- ✅ **Enhanced Error Handling** - Detailed error information from Odoo 18
+- ✅ **Smart Sync V2** - Efficient sync with only changed records
+- ✅ **Offline Sync** - Full offline support with push/pull and conflict resolution
+- ✅ **Server-Side Triggers** - Create and manage automation triggers
+- ✅ **Notifications API** - Full notification management with device registration
+- ✅ **Event Bus** - Central event system for all SDK events
+- ✅ **Webhook Events** - Real-time update notifications
 
 ## ✨ Features
 
@@ -22,26 +22,36 @@ Official Flutter SDK for BridgeCore API - Complete Odoo 18 integration with full
 - ✅ **Null Safety** - Full null safety support
 - ✅ **Type Safe** - Strongly typed models and responses
 
-### Odoo 18 Features 🆕
-- ✅ **OdooContext Manager** 🆕 - Global context management (language, timezone, company)
-- ✅ **callKw Method** 🆕 - Generic RPC caller (execute_kw compatible)
-- ✅ **7 New Actions** 🆕 - Validate, Done, Approve, Reject, Assign, Unlock, ExecuteButton
-- ✅ **Action Results** 🆕 - Parse window actions, reports, URLs
-- ✅ **Enhanced Errors** 🆕 - Detailed error info with codes and data
-- ✅ **Arabic Support** 🆕 - Full RTL and Arabic language support
+### Sync Features (NEW in v3.0.0)
+- ✅ **Offline Sync** - Push local changes, pull server updates
+- ✅ **Smart Sync V2** - Efficient incremental sync
+- ✅ **Conflict Resolution** - Resolve sync conflicts
+- ✅ **Webhook Events** - Get real-time update notifications
+- ✅ **Update Check** - Quick check for available updates
+- ✅ **Sync State** - Track sync status per device
+- ✅ **Periodic Sync** - Automatic background sync
 
-### Advanced Features
-- ✅ **Onchange Support** - Auto-calculate field values (critical for forms)
-- ✅ **Read Group** - Aggregate data for reports and analytics
-- ✅ **Permission Checking** - Check user access rights
-- ✅ **View Operations** - Load view definitions dynamically
-- ✅ **Custom Methods** - Call any Odoo method
-- ✅ **Odoo Fields Check** - Verify custom fields during login
-- ✅ **Field Presets** - Predefined field lists for common models
-- ✅ **Smart Fallback** - Automatic retry on invalid fields
-- ✅ **Retry Interceptor** - Automatic retry on network errors
-- ✅ **Caching** - In-memory caching with TTL support
-- ✅ **Metrics & Logging** - Request tracking and logging system
+### Triggers Features (NEW in v3.0.0)
+- ✅ **Create Triggers** - Notification, email, webhook, Odoo method triggers
+- ✅ **Manage Triggers** - Enable/disable, update, delete triggers
+- ✅ **Execute Manually** - Test triggers with specific records
+- ✅ **Execution History** - Track trigger executions
+- ✅ **Statistics** - Get trigger performance stats
+
+### Notifications Features (NEW in v3.0.0)
+- ✅ **List Notifications** - Get user notifications with filtering
+- ✅ **Mark as Read** - Single, multiple, or all notifications
+- ✅ **Preferences** - Manage notification preferences
+- ✅ **Device Registration** - Register devices for push notifications
+- ✅ **Statistics** - Notification counts and stats
+
+### Odoo 18 Features
+- ✅ **OdooContext Manager** - Global context management
+- ✅ **callKw Method** - Generic RPC caller (execute_kw compatible)
+- ✅ **7 Action Methods** - Validate, Done, Approve, Reject, Assign, Unlock, ExecuteButton
+- ✅ **Action Results** - Parse window actions, reports, URLs
+- ✅ **Enhanced Errors** - Detailed error info with codes and data
+- ✅ **Arabic Support** - Full RTL and Arabic language support
 
 ## 📦 Installation
 
@@ -50,12 +60,14 @@ Add to your `pubspec.yaml`:
 ```yaml
 dependencies:
   bridgecore_flutter:
-    path: ../bridgecore_flutter  # For local development
+    git:
+      url: https://github.com/geniustep/bridgecore_flutter.git
+      ref: 3.0.0
 ```
 
 ## 🚀 Quick Start
 
-### 1. Initialize with Odoo 18 Context
+### 1. Initialize SDK
 
 ```dart
 import 'package:bridgecore_flutter/bridgecore_flutter.dart';
@@ -70,11 +82,11 @@ void main() {
     logLevel: LogLevel.info,
   );
 
-  // Set default Odoo 18 context (optional but recommended)
+  // Set default Odoo 18 context (optional)
   OdooContext.setDefault(
-    lang: 'ar_001',              // Arabic language
-    timezone: 'Asia/Riyadh',     // Saudi Arabia timezone
-    allowedCompanyIds: [1, 2],   // Multi-company support
+    lang: 'ar_001',
+    timezone: 'Asia/Riyadh',
+    allowedCompanyIds: [1, 2],
   );
 
   runApp(MyApp());
@@ -91,570 +103,361 @@ try {
   );
 
   print('Logged in as: ${session.user.fullName}');
-  print('Tenant: ${session.tenant.name}');
-  print('Token expires in: ${session.expiresIn}s');
-} on PaymentRequiredException catch (e) {
-  print('Please upgrade your account');
-} on TenantSuspendedException catch (e) {
-  print('Account suspended: ${e.message}');
+  print('User ID: ${session.user.odooUserId}');
 } on UnauthorizedException catch (e) {
   print('Login failed: ${e.message}');
 }
 ```
 
-### 3. Use Odoo 18 Operations
+### 3. Use Sync Service
 
 ```dart
-// Basic search with Arabic context
-final partners = await BridgeCore.instance.odoo.searchRead(
-  model: 'res.partner',
-  domain: [['is_company', '=', true]],
-  fields: ['name', 'email', 'phone'],
-  limit: 50,
-);
+final sync = BridgeCore.instance.sync;
 
-// Call custom method with context
-final result = await BridgeCore.instance.odoo.custom.callMethod(
-  model: 'sale.order',
-  method: 'action_confirm',
-  ids: [orderId],
-  context: {'lang': 'ar_001', 'tz': 'Asia/Riyadh'},
-);
+// Set device info
+sync.deviceId = 'device-uuid';
+sync.appType = 'sales_app';
 
-// Use callKw for advanced operations
-final kwResult = await BridgeCore.instance.odoo.custom.callKw(
-  model: 'res.partner',
-  method: 'search_read',
-  args: [[['country_id.code', '=', 'SA']]],
-  kwargs: {'fields': ['name', 'email'], 'limit': 10},
-  context: {'lang': 'ar_001'},
-);
-```
+// Check for updates
+if (await sync.hasUpdates()) {
+  // Smart sync (v2) - pulls only new changes
+  final result = await sync.smartPull(userId: userId);
+  print('Pulled ${result.newEventsCount} new events');
+}
 
-## 📚 Odoo 18 Context Management
-
-### Setting Global Context
-
-```dart
-// Set default context for all operations
-OdooContext.setDefault(
-  lang: 'ar_001',              // Language
-  timezone: 'Asia/Riyadh',     // Timezone
-  allowedCompanyIds: [1, 2],   // Multi-company
-  uid: userId,                 // User ID
-  custom: {                    // Custom context
-    'custom_key': 'value',
+// Push local changes
+final pushResult = await sync.pushLocalChanges(
+  changes: {
+    'sale.order': [
+      {'id': 1, 'state': 'confirmed', '_action': 'update'},
+    ],
   },
 );
-```
 
-### Using Context in Calls
-
-```dart
-// Context is automatically merged with default
-await odoo.custom.actionConfirm(
-  model: 'sale.order',
-  ids: [orderId],
-  context: {'lang': 'ar_001'}, // Overrides default
-);
-
-// Or use default context (set globally)
-await odoo.custom.actionConfirm(
-  model: 'sale.order',
-  ids: [orderId],
+// Full sync cycle
+final fullResult = await sync.fullSyncCycle(
+  localChanges: changes,
+  models: ['sale.order', 'res.partner'],
 );
 ```
 
-### Context Helper Methods
+### 4. Use Triggers Service
 
 ```dart
-// Update language
-OdooContext.setLanguage('ar_001');
+final triggers = BridgeCore.instance.triggers;
 
-// Update timezone
-OdooContext.setTimezone('Asia/Riyadh');
-
-// Update specific values
-OdooContext.update(lang: 'en_US');
-
-// Clear context
-OdooContext.clear();
-```
-
-## 🎯 Odoo 18 Action Methods
-
-### Standard Actions
-
-```dart
-// Confirm (sales orders, purchase orders)
-await odoo.custom.actionConfirm(
+// Create notification trigger
+final trigger = await triggers.create(
+  name: 'New Order Alert',
   model: 'sale.order',
-  ids: [orderId],
-  context: {'lang': 'ar_001'},
-);
-
-// Cancel
-await odoo.custom.actionCancel(
-  model: 'sale.order',
-  ids: [orderId],
-);
-
-// Set to draft
-await odoo.custom.actionDraft(
-  model: 'sale.order',
-  ids: [orderId],
-);
-
-// Post (accounting documents)
-await odoo.custom.actionPost(
-  model: 'account.move',
-  ids: [invoiceId],
-);
-```
-
-### New Odoo 18 Actions 🆕
-
-```dart
-// Validate (stock pickings, inventory)
-await odoo.custom.actionValidate(
-  model: 'stock.picking',
-  ids: [pickingId],
-  context: {'lang': 'ar_001'},
-);
-
-// Mark as done (purchase orders, manufacturing)
-await odoo.custom.actionDone(
-  model: 'purchase.order',
-  ids: [orderId],
-);
-
-// Approve (HR leaves, expenses)
-await odoo.custom.actionApprove(
-  model: 'hr.leave',
-  ids: [leaveId],
-  context: {'lang': 'ar_001'},
-);
-
-// Reject (approval workflows)
-await odoo.custom.actionReject(
-  model: 'hr.leave',
-  ids: [leaveId],
-);
-
-// Assign (stock picking, tasks)
-await odoo.custom.actionAssign(
-  model: 'stock.picking',
-  ids: [pickingId],
-);
-
-// Unlock (posted accounting entries)
-await odoo.custom.actionUnlock(
-  model: 'account.move',
-  ids: [moveId],
-);
-
-// Execute any button action
-await odoo.custom.executeButtonAction(
-  model: 'sale.order',
-  buttonMethod: 'action_quotation_send',
-  ids: [orderId],
-  context: {'lang': 'ar_001'},
-);
-```
-
-## 🔄 Call Methods
-
-### callMethod - Simplified Method Caller
-
-```dart
-final result = await odoo.custom.callMethod(
-  model: 'sale.order',
-  method: 'action_confirm',
-  ids: [orderId],
-  args: [additionalArgs],
-  kwargs: {'param': 'value'},
-  context: {'lang': 'ar_001'},
-);
-
-// Check result
-if (result.success) {
-  print('Success: ${result.result}');
-
-  // Check for action
-  if (result.isAction) {
-    print('Action: ${result.action}');
-  }
-
-  // Check for warnings
-  if (result.hasWarnings) {
-    print('Warnings: ${result.warnings}');
-  }
-} else {
-  print('Error: ${result.error}');
-  print('Details: ${result.errorDetails}');
-}
-```
-
-### callKw - Generic RPC Caller 🆕
-
-Most compatible with Odoo's execute_kw pattern:
-
-```dart
-final result = await odoo.custom.callKw(
-  model: 'res.partner',
-  method: 'search_read',
-  args: [
-    [['is_company', '=', true]], // Domain
-  ],
-  kwargs: {
-    'fields': ['name', 'email', 'phone'],
-    'limit': 10,
-    'offset': 0,
+  event: TriggerEvent.onCreate,
+  actionType: TriggerActionType.notification,
+  actionConfig: {
+    'title': 'New Order',
+    'message': 'Order {{record.name}} created',
+    'user_ids': [1, 2, 3],
   },
-  context: {'lang': 'ar_001', 'tz': 'Asia/Riyadh'},
+);
+
+// List triggers
+final triggerList = await triggers.list(model: 'sale.order');
+
+// Execute manually
+final result = await triggers.execute(
+  trigger.id,
+  recordIds: [1, 2, 3],
+  testMode: true,
 );
 ```
 
-## 🎨 Action Result Handler 🆕
-
-Handle window actions, reports, and wizards:
+### 5. Use Notifications Service
 
 ```dart
-final result = await odoo.custom.callMethod(
-  model: 'sale.order',
-  method: 'action_view_order',
-  ids: [orderId],
+final notifications = BridgeCore.instance.notifications;
+
+// Get notifications
+final response = await notifications.list(isRead: false);
+print('Unread: ${response.unreadCount}');
+
+// Mark as read
+await notifications.markAsRead(notificationId);
+await notifications.markAllAsRead();
+
+// Update preferences
+await notifications.updatePreferences(
+  enablePush: true,
+  enableEmail: false,
+  quietHoursEnabled: true,
 );
 
-if (result.isAction) {
-  final action = ActionResult.fromJson(result.action!);
-
-  print('Action type: ${action.type}');
-  print('Model: ${action.resModel}');
-  print('View mode: ${action.viewMode}');
-
-  if (action.isWindowAction) {
-    if (action.isFormView) {
-      // Navigate to form view
-      navigateToForm(action.resModel!, action.resId!);
-    } else if (action.isListView) {
-      // Navigate to list view
-      navigateToList(action.resModel!, action.domain);
-    }
-  } else if (action.isReportAction) {
-    // Download report
-    downloadReport(action.reportName!);
-  } else if (action.isUrlAction) {
-    // Open URL
-    openUrl(action.url!);
-  }
-}
+// Register device
+await notifications.registerDevice(
+  deviceId: 'device-uuid',
+  deviceType: 'android',
+  token: 'fcm-token',
+);
 ```
 
-## 📖 Complete Examples
-
-### Example 1: Sales Order Workflow (Arabic)
+### 6. Use Event Bus
 
 ```dart
-import 'package:bridgecore_flutter/bridgecore_flutter.dart';
+final eventBus = BridgeCoreEventBus.instance;
 
-class SalesOrderService {
-  final odoo = BridgeCore.instance.odoo;
+// Listen to all events
+eventBus.stream.listen((event) {
+  print('Event: ${event.type}');
+});
 
-  Future<void> createAndConfirmOrder() async {
-    try {
-      // Set Arabic context
-      OdooContext.setDefault(
-        lang: 'ar_001',
-        timezone: 'Asia/Riyadh',
-      );
+// Listen to specific event type
+eventBus.on('sync.completed').listen((event) {
+  print('Sync completed: ${event.data}');
+});
 
-      // 1. Create sales order
-      final createResult = await odoo.custom.callKw(
-        model: 'sale.order',
-        method: 'create',
-        args: [
-          {
-            'partner_id': 123,
-            'date_order': DateTime.now().toIso8601String(),
-          }
-        ],
-      );
+// Listen to pattern
+eventBus.onPattern('odoo.').listen((event) {
+  print('Odoo event: ${event.type}');
+});
 
-      final orderId = createResult.result as int;
-      print('Created order: $orderId');
+// Emit event
+eventBus.emit('custom.event', {'key': 'value'});
 
-      // 2. Add order lines
-      await odoo.custom.callKw(
-        model: 'sale.order.line',
-        method: 'create',
-        args: [
-          {
-            'order_id': orderId,
-            'product_id': 456,
-            'product_uom_qty': 2.0,
-          }
-        ],
-      );
-
-      // 3. Confirm order
-      final confirmResult = await odoo.custom.actionConfirm(
-        model: 'sale.order',
-        ids: [orderId],
-      );
-
-      if (confirmResult.success) {
-        print('تم تأكيد الطلب بنجاح!');
-
-        if (confirmResult.isAction) {
-          final action = ActionResult.fromJson(confirmResult.action!);
-          print('Next action: ${action.type}');
-        }
-      } else {
-        print('فشل التأكيد: ${confirmResult.error}');
-      }
-    } catch (e) {
-      print('خطأ: $e');
-    }
-  }
-}
+// Wait for event
+final event = await eventBus.waitFor(
+  'sync.completed',
+  timeout: Duration(seconds: 30),
+);
 ```
 
-### Example 2: HR Leave Approval
+## 📖 Complete API Reference
+
+### Authentication (AuthService)
 
 ```dart
-class HRLeaveService {
-  final odoo = BridgeCore.instance.odoo;
+final auth = BridgeCore.instance.auth;
 
-  Future<void> approveLeave(int leaveId) async {
-    try {
-      // Check permissions
-      final accessCheck = await odoo.permissions.checkAccessRights(
-        model: 'hr.leave',
-        operation: 'write',
-      );
+// Login
+final session = await auth.login(email: '...', password: '...');
 
-      if (!accessCheck.hasAccess!) {
-        throw Exception('لا تملك صلاحية الموافقة');
-      }
+// Get current user info
+final me = await auth.me(forceRefresh: true);
+print('Partner ID: ${me.partnerId}');
+print('Is Admin: ${me.isAdmin}');
 
-      // Validate leave
-      final validateResult = await odoo.custom.actionValidate(
-        model: 'hr.leave',
-        ids: [leaveId],
-        context: {'lang': 'ar_001'},
-      );
+// Refresh token
+await auth.refreshToken();
 
-      if (!validateResult.success) {
-        throw Exception(validateResult.error);
-      }
-
-      // Approve leave
-      final approveResult = await odoo.custom.actionApprove(
-        model: 'hr.leave',
-        ids: [leaveId],
-        context: {'lang': 'ar_001'},
-      );
-
-      if (approveResult.success) {
-        print('تمت الموافقة على الإجازة بنجاح');
-      }
-    } catch (e) {
-      print('خطأ: $e');
-    }
-  }
-
-  Future<void> rejectLeave(int leaveId, String reason) async {
-    final result = await odoo.custom.actionReject(
-      model: 'hr.leave',
-      ids: [leaveId],
-      context: {
-        'lang': 'ar_001',
-        'reason': reason,
-      },
-    );
-
-    if (result.success) {
-      print('تم رفض الإجازة');
-    }
-  }
-}
+// Logout
+await auth.logout();
 ```
 
-### Example 3: Stock Picking Workflow
+### Odoo Operations (OdooService)
 
 ```dart
-class StockPickingService {
-  final odoo = BridgeCore.instance.odoo;
+final odoo = BridgeCore.instance.odoo;
 
-  Future<void> processPickingWorkflow(int pickingId) async {
-    try {
-      OdooContext.setDefault(
-        lang: 'ar_001',
-        timezone: 'Asia/Riyadh',
-      );
+// CRUD Operations
+final records = await odoo.searchRead(model: '...', domain: [...]);
+final id = await odoo.create(model: '...', values: {...});
+await odoo.update(model: '...', ids: [...], values: {...});
+await odoo.delete(model: '...', ids: [...]);
 
-      // 1. Check availability
-      final assignResult = await odoo.custom.actionAssign(
-        model: 'stock.picking',
-        ids: [pickingId],
-      );
+// Advanced Operations
+final groups = await odoo.advanced.readGroup(...);
+final defaults = await odoo.advanced.defaultGet(...);
+final onchangeResult = await odoo.advanced.onchange(...);
 
-      if (!assignResult.success) {
-        throw Exception('المنتجات غير متوفرة');
-      }
+// View Operations
+final view = await odoo.views.getView(...);
+final views = await odoo.views.getViews(...);
 
-      // 2. Validate transfer
-      final validateResult = await odoo.custom.actionValidate(
-        model: 'stock.picking',
-        ids: [pickingId],
-      );
+// Permission Operations
+final access = await odoo.permissions.checkAccessRights(...);
+final exists = await odoo.permissions.exists(...);
 
-      if (validateResult.success) {
-        print('تم التحويل بنجاح');
+// Custom Operations
+final result = await odoo.custom.callKw(...);
+await odoo.custom.actionConfirm(...);
+await odoo.custom.actionApprove(...);
+```
 
-        // Check for backorder
-        if (validateResult.isAction) {
-          final action = ActionResult.fromJson(validateResult.action!);
-          if (action.resModel == 'stock.backorder.confirmation') {
-            print('يوجد كمية متبقية - تم إنشاء backorder');
-          }
-        }
-      }
-    } catch (e) {
-      print('خطأ: $e');
-    }
-  }
-}
+### Sync Service
+
+```dart
+final sync = BridgeCore.instance.sync;
+
+// Update Check
+bool hasUpdates = await sync.hasUpdates();
+List<WebhookEvent> events = await sync.getWebhookEvents();
+
+// Offline Sync
+OfflineSyncPullResult pull = await sync.pullUpdates();
+OfflineSyncPushResult push = await sync.pushLocalChanges(changes: {...});
+ConflictResolutionResult resolve = await sync.resolveConflicts(resolutions: [...]);
+OfflineSyncState state = await sync.getSyncState();
+
+// Smart Sync V2
+SmartSyncPullResult smartPull = await sync.smartPull(userId: userId);
+SmartSyncState smartState = await sync.getSmartSyncState(userId: userId);
+
+// Periodic Sync
+sync.startPeriodicUpdateCheck(interval: Duration(minutes: 5));
+sync.stopPeriodicUpdateCheck();
+
+// Health Check
+SyncHealthStatus health = await sync.checkHealth();
+```
+
+### Triggers Service
+
+```dart
+final triggers = BridgeCore.instance.triggers;
+
+// Create
+Trigger trigger = await triggers.create(
+  name: '...',
+  model: '...',
+  event: TriggerEvent.onCreate,
+  actionType: TriggerActionType.notification,
+  actionConfig: {...},
+);
+
+// List
+TriggerListResponse list = await triggers.list();
+
+// Get
+Trigger trigger = await triggers.get(triggerId);
+
+// Update
+Trigger updated = await triggers.update(triggerId, name: '...');
+
+// Toggle
+Trigger toggled = await triggers.toggle(triggerId, true);
+
+// Execute
+ManualExecutionResult result = await triggers.execute(triggerId);
+
+// History & Stats
+TriggerExecutionListResponse history = await triggers.getHistory(triggerId);
+TriggerStats stats = await triggers.getStats(triggerId);
+
+// Delete
+bool deleted = await triggers.delete(triggerId);
+```
+
+### Notifications Service
+
+```dart
+final notifications = BridgeCore.instance.notifications;
+
+// List
+NotificationListResponse list = await notifications.list(isRead: false);
+
+// Mark Read
+await notifications.markAsRead(notificationId);
+await notifications.markMultipleAsRead([id1, id2]);
+await notifications.markAllAsRead();
+
+// Delete
+await notifications.delete(notificationId);
+
+// Preferences
+NotificationPreference prefs = await notifications.getPreferences();
+NotificationPreference updated = await notifications.updatePreferences(...);
+
+// Device Registration
+DeviceToken token = await notifications.registerDevice(...);
+await notifications.unregisterDevice(deviceId);
+DeviceTokenListResponse devices = await notifications.listDevices();
+
+// Stats
+NotificationStats stats = await notifications.getStats();
+```
+
+## 🔄 Event Types
+
+All events emitted by the SDK:
+
+```dart
+// Auth Events
+'auth.login'
+'auth.logout'
+'auth.token_refreshed'
+
+// Sync Events
+'sync.started'
+'sync.completed'
+'sync.failed'
+'sync.conflict'
+'sync.push_completed'
+'sync.state_reset'
+'updates_available'
+'smart_sync.completed'
+
+// Odoo Record Events
+'odoo.record_created'
+'odoo.record_updated'
+'odoo.record_deleted'
 ```
 
 ## 🚨 Error Handling
 
 ```dart
 try {
-  final result = await odoo.custom.callMethod(...);
-
-  if (result.success) {
-    // Success
-    print('Result: ${result.result}');
-  } else {
-    // Error with details
-    print('Error: ${result.error}');
-    print('Code: ${result.errorDetails?['code']}');
-    print('Data: ${result.errorDetails?['data']}');
-  }
+  await BridgeCore.instance.auth.login(...);
 } on PaymentRequiredException catch (e) {
-  print('Trial expired: ${e.message}');
+  print('Trial expired');
 } on AccountDeletedException catch (e) {
-  print('Account deleted: ${e.message}');
+  print('Account deleted');
 } on UnauthorizedException catch (e) {
-  print('Unauthorized: ${e.message}');
+  print('Unauthorized');
 } on TenantSuspendedException catch (e) {
-  print('Account suspended: ${e.message}');
+  print('Account suspended');
 } on ValidationException catch (e) {
-  print('Validation error: ${e.message}');
+  print('Validation error');
 } on NetworkException catch (e) {
-  print('No internet: ${e.message}');
+  print('No internet');
+} on SyncConflictException catch (e) {
+  print('Sync conflict: ${e.conflicts}');
 } on BridgeCoreException catch (e) {
   print('Error: ${e.message}');
 }
 ```
 
-## 📋 API Summary
+## 📋 All Endpoints
 
-### Odoo 18 New Features
+### Authentication
+- `POST /api/v1/auth/tenant/login`
+- `POST /api/v1/auth/tenant/refresh`
+- `POST /api/v1/auth/tenant/logout`
+- `POST /api/v1/auth/tenant/me`
 
-| Feature | Description |
-|---------|-------------|
-| `OdooContext` | Global context manager |
-| `callKw()` | Generic RPC caller |
-| `actionValidate()` | Validate records |
-| `actionDone()` | Mark as done |
-| `actionApprove()` | Approve records |
-| `actionReject()` | Reject records |
-| `actionAssign()` | Assign records |
-| `actionUnlock()` | Unlock documents |
-| `executeButtonAction()` | Execute any button |
-| `ActionResult` | Parse action responses |
+### Odoo Operations
+- CRUD: `create`, `read`, `write`, `unlink`
+- Search: `search`, `search_read`, `search_count`
+- Name: `name_search`, `name_get`, `name_create`
+- Advanced: `onchange`, `read_group`, `default_get`, `copy`
+- Views: `fields_get`, `fields_view_get`, `get_view`, `load_views`, `get_views`
+- Permissions: `check_access_rights`, `exists`
+- Custom: `call_kw`, `call_method`
+- Batch: `batch_create`, `batch_write`, `batch_unlink`, `batch_execute`
+- Web: `web_search_read`, `web_read`, `web_save`
 
-### All Operations (33 Total)
+### Sync
+- Webhooks: `GET /api/v1/webhooks/check-updates`, `GET /api/v1/webhooks/events`
+- Offline Sync: `POST /api/v1/offline-sync/push`, `POST /api/v1/offline-sync/pull`
+- Smart Sync: `POST /api/v2/sync/pull`, `GET /api/v2/sync/state`
 
-**CRUD Operations:**
-- create, read, update, delete
-- search, searchRead, searchCount
+### Triggers
+- `POST /api/v1/triggers/create`
+- `GET /api/v1/triggers/list`
+- `GET/PUT/DELETE /api/v1/triggers/{id}`
+- `POST /api/v1/triggers/{id}/execute`
 
-**Batch Operations:**
-- batchCreate, batchUpdate, batchDelete, executeBatch
-
-**Web Operations (Odoo 14+):**
-- webSearchRead, webRead, webSave
-
-**Advanced Operations:**
-- onchange, readGroup, defaultGet, copy, fieldsGet
-
-**View Operations:**
-- fieldsViewGet, getView, loadViews, getViews
-
-**Name Operations:**
-- nameSearch, nameGet, nameCreate
-
-**Permission Operations:**
-- checkAccessRights, exists
-
-**Custom Operations:**
-- callMethod, callKw
-- actionConfirm, actionCancel, actionDraft, actionPost
-- actionValidate, actionDone, actionApprove, actionReject
-- actionAssign, actionUnlock, executeButtonAction
-
-## 📚 Documentation
-
-- **[Odoo 18 Guide](ODOO_18_GUIDE.md)** - Complete Odoo 18 integration guide
-- **[Changelog v2.1.0](CHANGELOG_v2.1.0.md)** - What's new in v2.1.0
-- **[API Reference](https://github.com/your-repo)** - Full API documentation
-
-## ⚡ Best Practices for Odoo 18
-
-### 1. Always Set Context
-
-```dart
-OdooContext.setDefault(
-  lang: 'ar_001',
-  timezone: 'Asia/Riyadh',
-);
-```
-
-### 2. Handle Actions Properly
-
-```dart
-if (result.isAction) {
-  final action = ActionResult.fromJson(result.action!);
-  // Handle the action
-}
-```
-
-### 3. Check Warnings
-
-```dart
-if (result.hasWarnings) {
-  for (var warning in result.warnings!) {
-    showWarning(warning['message']);
-  }
-}
-```
-
-### 4. Use Appropriate Method
-
-```dart
-// For button actions
-await odoo.custom.callMethod(model: '...', method: '...');
-
-// For CRUD operations
-await odoo.custom.callKw(model: '...', method: 'search_read', ...);
-
-// For convenience
-await odoo.custom.actionConfirm(model: '...', ids: [...]);
-```
+### Notifications
+- `GET /api/v1/notifications/list`
+- `POST /api/v1/notifications/{id}/read`
+- `GET/PUT /api/v1/notifications/preferences`
+- `POST /api/v1/notifications/register-device`
 
 ## 🔮 Compatibility
 
@@ -662,30 +465,26 @@ await odoo.custom.actionConfirm(model: '...', ids: [...]);
 - **Flutter:** >=3.0.0
 - **Dart:** >=3.0.0
 
-## 📝 Migration from v2.0.x
+## 📝 Migration from v2.x
 
-No breaking changes! Just add context for better Odoo 18 support:
+All v2.x APIs remain unchanged. New features are additive:
 
 ```dart
-// Before (v2.0.x) - still works
-await odoo.custom.actionConfirm(
-  model: 'sale.order',
-  ids: [orderId],
-);
+// v2.x code still works
+await odoo.searchRead(...);
+await odoo.custom.actionConfirm(...);
 
-// After (v2.1.0) - with Odoo 18 context
-await odoo.custom.actionConfirm(
-  model: 'sale.order',
-  ids: [orderId],
-  context: {'lang': 'ar_001'},
-);
+// New v3.0.0 features
+await BridgeCore.instance.sync.smartPull(...);
+await BridgeCore.instance.triggers.create(...);
+await BridgeCore.instance.notifications.list();
 ```
 
 ## 🤝 Support
 
 For issues and questions:
-- GitHub Issues: https://github.com/your-repo/issues
-- Documentation: See ODOO_18_GUIDE.md
+- GitHub Issues: https://github.com/geniustep/bridgecore_flutter/issues
+- Email: support@geniustep.com
 
 ## 📄 License
 
@@ -693,6 +492,6 @@ MIT License
 
 ---
 
-**Version:** 2.1.0
-**Last Updated:** 2025-11-24
+**Version:** 3.0.0  
+**Last Updated:** 2025-11-28  
 **Odoo Compatibility:** 14, 15, 16, 17, 18
