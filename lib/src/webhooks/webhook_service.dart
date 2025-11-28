@@ -63,7 +63,7 @@ class WebhookService {
     BridgeCoreLogger.info('Registering webhook for $model.$event');
 
     final response = await httpClient.post(
-      BridgeCoreEndpoints.webhookRegister,
+      BridgeCoreEndpoints.webhooks,
       {
         'model': model,
         'event': event,
