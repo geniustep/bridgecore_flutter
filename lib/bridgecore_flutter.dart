@@ -78,6 +78,9 @@ export 'src/notifications/models/device_token.dart';
 // Sync
 export 'src/sync/sync_service.dart';
 
+// Odoo Sync
+export 'src/odoo_sync/odoo_sync_service.dart';
+
 // Events
 export 'src/events/event_bus.dart';
 export 'src/events/event_types.dart';

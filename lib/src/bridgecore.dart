@@ -6,6 +6,8 @@ import 'core/logger.dart';
 import 'triggers/trigger_service.dart';
 import 'notifications/notification_service.dart';
 import 'sync/sync_service.dart';
+import 'odoo_sync/odoo_sync_service.dart';
+import 'events/event_bus.dart';
 
 /// Main BridgeCore SDK class
 /// 
@@ -36,6 +38,8 @@ class BridgeCore {
   late final TriggerService _triggerService;
   late final NotificationService _notificationService;
   late final SyncService _syncService;
+  late final OdooSyncService _odooSyncService;
+  late final BridgeCoreEventBus _eventBus;
 
   /// Authentication service
   AuthService get auth => _authService;
@@ -51,6 +55,12 @@ class BridgeCore {
 
   /// Sync service (offline sync & smart sync)
   SyncService get sync => _syncService;
+
+  /// Odoo Sync service (direct integration with auto-webhook-odoo)
+  OdooSyncService get odooSync => _odooSyncService;
+
+  /// Event bus for subscribing to SDK events
+  BridgeCoreEventBus get events => _eventBus;
 
   BridgeCore._internal({
     required String baseUrl,
@@ -83,7 +93,9 @@ class BridgeCore {
     _odooService = OdooService(httpClient: _httpClient);
     _triggerService = TriggerService(httpClient: _httpClient);
     _notificationService = NotificationService(httpClient: _httpClient);
+    _eventBus = BridgeCoreEventBus();
     _syncService = SyncService(httpClient: _httpClient);
+    _odooSyncService = OdooSyncService(_httpClient, _eventBus);
   }
 
   /// Initialize BridgeCore SDK

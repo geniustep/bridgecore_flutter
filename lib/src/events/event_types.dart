@@ -134,6 +134,25 @@ class BridgeCoreEventTypes {
   static const String notificationDeleted = 'notification.deleted';
 
   // ════════════════════════════════════════════════════════════
+  // Odoo Sync Events
+  // ════════════════════════════════════════════════════════════
+
+  /// Odoo events pulled successfully
+  static const String odooEventsPulled = 'odoo_sync.events_pulled';
+
+  /// Sync state updated
+  static const String syncStateUpdated = 'odoo_sync.state_updated';
+
+  /// Odoo sync started
+  static const String odooSyncStarted = 'odoo_sync.started';
+
+  /// Odoo sync completed
+  static const String odooSyncCompleted = 'odoo_sync.completed';
+
+  /// Odoo sync failed
+  static const String odooSyncFailed = 'odoo_sync.failed';
+
+  // ════════════════════════════════════════════════════════════
   // WebSocket Events
   // ════════════════════════════════════════════════════════════
 
@@ -263,6 +282,15 @@ class BridgeCoreEventTypes {
         notificationDeleted,
       ];
 
+  /// Get all odoo sync event types
+  static List<String> get odooSyncEvents => [
+        odooEventsPulled,
+        syncStateUpdated,
+        odooSyncStarted,
+        odooSyncCompleted,
+        odooSyncFailed,
+      ];
+
   /// Get all websocket event types
   static List<String> get websocketEvents => [
         websocketConnected,
@@ -304,6 +332,7 @@ class BridgeCoreEventTypes {
         ...syncEvents,
         ...triggerEvents,
         ...notificationEvents,
+        ...odooSyncEvents,
         ...websocketEvents,
         ...pollingEvents,
         ...errorEvents,

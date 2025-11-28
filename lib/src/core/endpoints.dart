@@ -386,6 +386,46 @@ class BridgeCoreEndpoints {
   static const String notificationStats = '/api/v1/notifications/stats';
 
   // ════════════════════════════════════════════════════════════
+  // Odoo Sync (Direct integration with auto-webhook-odoo)
+  // ════════════════════════════════════════════════════════════
+
+  /// Pull events from Odoo's update.webhook
+  /// POST /api/v1/odoo-sync/pull
+  static const String odooSyncPull = '/api/v1/odoo-sync/pull';
+
+  /// Pull events from Odoo (GET)
+  /// GET /api/v1/odoo-sync/pull
+  static const String odooSyncPullGet = '/api/v1/odoo-sync/pull';
+
+  /// Acknowledge events as processed
+  /// POST /api/v1/odoo-sync/ack
+  static const String odooSyncAck = '/api/v1/odoo-sync/ack';
+
+  /// Get or create sync state
+  /// POST /api/v1/odoo-sync/sync-state
+  static const String odooSyncState = '/api/v1/odoo-sync/sync-state';
+
+  /// Update sync state
+  /// POST /api/v1/odoo-sync/sync-state/update
+  static const String odooSyncStateUpdate = '/api/v1/odoo-sync/sync-state/update';
+
+  /// Get sync statistics
+  /// GET /api/v1/odoo-sync/sync-state/stats
+  static const String odooSyncStateStats = '/api/v1/odoo-sync/sync-state/stats';
+
+  /// Smart pull with auto sync state
+  /// POST /api/v1/odoo-sync/smart-pull
+  static const String odooSyncSmartPull = '/api/v1/odoo-sync/smart-pull';
+
+  /// Odoo sync health check
+  /// GET /api/v1/odoo-sync/health
+  static const String odooSyncHealth = '/api/v1/odoo-sync/health';
+
+  /// Odoo sync statistics
+  /// GET /api/v1/odoo-sync/stats
+  static const String odooSyncStats = '/api/v1/odoo-sync/stats';
+
+  // ════════════════════════════════════════════════════════════
   // Utility Methods
   // ════════════════════════════════════════════════════════════
 
@@ -493,6 +533,16 @@ class BridgeCoreEndpoints {
       notificationUnregisterDevice,
       notificationDevices,
       notificationStats,
+      // Odoo Sync
+      odooSyncPull,
+      odooSyncPullGet,
+      odooSyncAck,
+      odooSyncState,
+      odooSyncStateUpdate,
+      odooSyncStateStats,
+      odooSyncSmartPull,
+      odooSyncHealth,
+      odooSyncStats,
     ];
   }
 }
