@@ -83,6 +83,21 @@ class BridgeCoreEventTypes {
   /// Sync cancelled
   static const String syncCancelled = 'sync.cancelled';
 
+  /// Sync push completed
+  static const String syncPushCompleted = 'sync.push_completed';
+
+  /// Sync conflict detected
+  static const String syncConflictDetected = 'sync.conflict_detected';
+
+  /// Sync conflict resolved
+  static const String syncConflictResolved = 'sync.conflict_resolved';
+
+  /// Sync state reset
+  static const String syncStateReset = 'sync.state_reset';
+
+  /// Smart sync completed (V2)
+  static const String smartSyncCompleted = 'sync.smart_completed';
+
   // ════════════════════════════════════════════════════════════
   // Trigger Events
   // ════════════════════════════════════════════════════════════
@@ -224,6 +239,11 @@ class BridgeCoreEventTypes {
         syncFailed,
         syncProgress,
         syncCancelled,
+        syncPushCompleted,
+        syncConflictDetected,
+        syncConflictResolved,
+        syncStateReset,
+        smartSyncCompleted,
       ];
 
   /// Get all trigger event types

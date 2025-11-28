@@ -7,12 +7,12 @@ import '../core/logger.dart';
 import '../events/event_bus.dart';
 import '../events/event_types.dart';
 
-/// Sync Service - Compatible with BridgeCore Backend v1
+/// Sync Service - Compatible with BridgeCore Backend
 ///
-/// ⚠️ IMPORTANT: This service uses the ACTUAL endpoints from BridgeCore:
-/// - /api/v1/webhooks/check-updates (✅ exists)
-/// - /api/v1/offline-sync/* (✅ exists - full sync system)
-/// - /api/v2/sync/* (✅ exists - smart sync system)
+/// Supports:
+/// - /api/v1/webhooks/* - Update checking
+/// - /api/v1/offline-sync/* - Full offline sync
+/// - /api/v2/sync/* - Smart sync for multi-user apps
 ///
 /// Usage:
 /// ```dart
@@ -27,8 +27,8 @@ import '../events/event_types.dart';
 /// await sync.pullUpdates();
 /// await sync.pushLocalChanges(changes);
 ///
-/// // Check sync state
-/// final state = await sync.getSyncState(deviceId: 'device-123');
+/// // Smart sync (v2)
+/// final result = await sync.smartPull(userId: 'user-123');
 /// ```
 class SyncService {
   final BridgeCoreHttpClient httpClient;
@@ -61,14 +61,7 @@ class SyncService {
 
   /// Check if updates are available (quick check)
   ///
-  /// Uses: GET /api/v1/webhooks/check-updates ✅
-  ///
-  /// Example:
-  /// ```dart
-  /// if (await sync.hasUpdates()) {
-  ///   showUpdateNotification();
-  /// }
-  /// ```
+  /// Uses: GET /api/v1/webhooks/check-updates
   Future<bool> hasUpdates({
     String? userId,
     String? deviceId,
@@ -81,8 +74,7 @@ class SyncService {
       if (appType != null) queryParams['app_type'] = appType;
 
       final response = await httpClient.get(
-        BridgeCoreEndpoints
-            .webhookCheckUpdates, // ✅ /api/v1/webhooks/check-updates
+        BridgeCoreEndpoints.webhookCheckUpdates,
         queryParams: queryParams,
       );
 
@@ -109,19 +101,7 @@ class SyncService {
 
   /// Get webhook events (detailed updates)
   ///
-  /// Uses: GET /api/v1/webhooks/events ✅
-  ///
-  /// Example:
-  /// ```dart
-  /// final events = await sync.getWebhookEvents(
-  ///   model: 'sale.order',
-  ///   limit: 50,
-  /// );
-  ///
-  /// for (var event in events) {
-  ///   print('Event: ${event.eventType} - ${event.model}');
-  /// }
-  /// ```
+  /// Uses: GET /api/v1/webhooks/events
   Future<List<WebhookEvent>> getWebhookEvents({
     String? model,
     String? eventType,
@@ -140,13 +120,14 @@ class SyncService {
       if (since != null) queryParams['since'] = since.toIso8601String();
 
       final response = await httpClient.get(
-        BridgeCoreEndpoints.webhookEvents, // ✅ /api/v1/webhooks/events
+        BridgeCoreEndpoints.webhookEvents,
         queryParams: queryParams,
       );
 
-      return (response['events'] as List)
-          .map((json) => WebhookEvent.fromJson(json))
-          .toList();
+      return (response['events'] as List?)
+              ?.map((json) => WebhookEvent.fromJson(json))
+              .toList() ??
+          [];
     } on DioException catch (e) {
       _handleSyncError(e);
       rethrow;
@@ -159,17 +140,7 @@ class SyncService {
 
   /// Pull updates from server
   ///
-  /// Uses: POST /api/v1/offline-sync/pull ✅
-  ///
-  /// Example:
-  /// ```dart
-  /// final result = await sync.pullUpdates(
-  ///   deviceId: 'device-123',
-  ///   models: ['sale.order', 'product.product'],
-  /// );
-  ///
-  /// print('Pulled ${result.totalRecords} records');
-  /// ```
+  /// Uses: POST /api/v1/offline-sync/pull
   Future<OfflineSyncPullResult> pullUpdates({
     String? deviceId,
     List<String>? models,
@@ -187,7 +158,7 @@ class SyncService {
       };
 
       final response = await httpClient.post(
-        BridgeCoreEndpoints.offlineSyncPull, // ✅ /api/v1/offline-sync/pull
+        BridgeCoreEndpoints.offlineSyncPull,
         requestBody,
       );
 
@@ -206,9 +177,6 @@ class SyncService {
 
       return result;
     } on DioException catch (e) {
-      // _eventBus.emit(BridgeCoreEventTypes.syncPullFailed, {
-      //   'error': e.toString(),
-      // });
       _handleSyncError(e);
       rethrow;
     }
@@ -216,25 +184,7 @@ class SyncService {
 
   /// Push local changes to server
   ///
-  /// Uses: POST /api/v1/offline-sync/push ✅
-  ///
-  /// Example:
-  /// ```dart
-  /// final changes = {
-  ///   'sale.order': [
-  ///     {
-  ///       'id': 123,
-  ///       'local_id': 'temp-456',
-  ///       'operation': 'create',
-  ///       'data': {'name': 'SO001', 'amount': 1000},
-  ///       'timestamp': DateTime.now().toIso8601String(),
-  ///     }
-  ///   ],
-  /// };
-  ///
-  /// final result = await sync.pushLocalChanges(changes);
-  /// print('Pushed successfully: ${result.successful.length}');
-  /// ```
+  /// Uses: POST /api/v1/offline-sync/push
   Future<OfflineSyncPushResult> pushLocalChanges({
     required Map<String, List<Map<String, dynamic>>> changes,
     String? deviceId,
@@ -249,7 +199,7 @@ class SyncService {
       };
 
       final response = await httpClient.post(
-        BridgeCoreEndpoints.offlineSyncPush, // ✅ /api/v1/offline-sync/push
+        BridgeCoreEndpoints.offlineSyncPush,
         requestBody,
       );
 
@@ -281,9 +231,6 @@ class SyncService {
 
       return result;
     } on DioException catch (e) {
-      // _eventBus.emit(BridgeCoreEventTypes. syncPushFailed, {
-      //   'error': e.toString(),
-      // });
       _handleSyncError(e);
       rethrow;
     }
@@ -291,20 +238,7 @@ class SyncService {
 
   /// Resolve sync conflicts
   ///
-  /// Uses: POST /api/v1/offline-sync/resolve-conflicts ✅
-  ///
-  /// Example:
-  /// ```dart
-  /// final resolutions = [
-  ///   {
-  ///     'conflict_id': 'conf-123',
-  ///     'resolution': 'use_server', // or 'use_local', 'merge'
-  ///     'merged_data': {...}, // if resolution = 'merge'
-  ///   }
-  /// ];
-  ///
-  /// final result = await sync.resolveConflicts(resolutions);
-  /// ```
+  /// Uses: POST /api/v1/offline-sync/resolve-conflicts
   Future<ConflictResolutionResult> resolveConflicts({
     required List<Map<String, dynamic>> resolutions,
     String? deviceId,
@@ -318,8 +252,7 @@ class SyncService {
       };
 
       final response = await httpClient.post(
-        BridgeCoreEndpoints
-            .offlineSyncResolveConflicts, // ✅ /api/v1/offline-sync/resolve-conflicts
+        BridgeCoreEndpoints.offlineSyncResolveConflicts,
         requestBody,
       );
 
@@ -344,14 +277,7 @@ class SyncService {
 
   /// Get offline sync state
   ///
-  /// Uses: GET /api/v1/offline-sync/state?device_id=xxx ✅
-  ///
-  /// Example:
-  /// ```dart
-  /// final state = await sync.getSyncState(deviceId: 'device-123');
-  /// print('Last sync: ${state.lastSyncAt}');
-  /// print('Pending changes: ${state.pendingChanges}');
-  /// ```
+  /// Uses: GET /api/v1/offline-sync/state
   Future<OfflineSyncState> getSyncState({String? deviceId}) async {
     try {
       final queryParams = {
@@ -359,7 +285,7 @@ class SyncService {
       };
 
       final response = await httpClient.get(
-        BridgeCoreEndpoints.offlineSyncState, // ✅ /api/v1/offline-sync/state
+        BridgeCoreEndpoints.offlineSyncState,
         queryParams: queryParams,
       );
 
@@ -373,12 +299,7 @@ class SyncService {
 
   /// Reset sync state (use with caution!)
   ///
-  /// Uses: POST /api/v1/offline-sync/reset ✅
-  ///
-  /// Example:
-  /// ```dart
-  /// await sync.resetSyncState(deviceId: 'device-123');
-  /// ```
+  /// Uses: POST /api/v1/offline-sync/reset
   Future<bool> resetSyncState({String? deviceId}) async {
     try {
       BridgeCoreLogger.warning('Resetting sync state...');
@@ -388,7 +309,7 @@ class SyncService {
       };
 
       final response = await httpClient.post(
-        BridgeCoreEndpoints.offlineSyncReset, // ✅ /api/v1/offline-sync/reset
+        BridgeCoreEndpoints.offlineSyncReset,
         requestBody,
       );
 
@@ -410,19 +331,11 @@ class SyncService {
 
   /// Check offline sync health
   ///
-  /// Uses: GET /api/v1/offline-sync/health ✅
-  ///
-  /// Example:
-  /// ```dart
-  /// final health = await sync.checkHealth();
-  /// if (health.isHealthy) {
-  ///   print('Sync system is healthy');
-  /// }
-  /// ```
+  /// Uses: GET /api/v1/offline-sync/health
   Future<SyncHealthStatus> checkHealth() async {
     try {
       final response = await httpClient.get(
-        BridgeCoreEndpoints.offlineSyncHealth, // ✅ /api/v1/offline-sync/health
+        BridgeCoreEndpoints.offlineSyncHealth,
       );
 
       return SyncHealthStatus.fromJson(response);
@@ -438,7 +351,7 @@ class SyncService {
 
   /// Smart sync pull (v2)
   ///
-  /// Uses: POST /api/v2/sync/pull ✅
+  /// Uses: POST /api/v2/sync/pull
   ///
   /// Example:
   /// ```dart
@@ -449,10 +362,11 @@ class SyncService {
   /// );
   /// ```
   Future<SmartSyncPullResult> smartPull({
-    required String userId,
+    required int userId,
     String? deviceId,
     String? appType,
     List<String>? models,
+    int? limit,
   }) async {
     try {
       BridgeCoreLogger.info('Starting smart sync pull (v2)...');
@@ -463,10 +377,11 @@ class SyncService {
         if (appType != null || this.appType != null)
           'app_type': appType ?? this.appType,
         if (models != null) 'models': models,
+        if (limit != null) 'limit': limit,
       };
 
       final response = await httpClient.post(
-        BridgeCoreEndpoints.smartSyncV2Pull, // ✅ /api/v2/sync/pull
+        BridgeCoreEndpoints.smartSyncV2Pull,
         requestBody,
       );
 
@@ -475,11 +390,12 @@ class SyncService {
       _eventBus.emit(BridgeCoreEventTypes.smartSyncCompleted, {
         'user_id': userId,
         'device_id': deviceId ?? this.deviceId,
-        'total_updates': result.totalUpdates,
+        'has_updates': result.hasUpdates,
+        'new_events_count': result.newEventsCount,
       });
 
       BridgeCoreLogger.info(
-          'Smart sync completed: ${result.totalUpdates} updates');
+          'Smart sync completed: ${result.newEventsCount} new events');
 
       return result;
     } on DioException catch (e) {
@@ -490,31 +406,76 @@ class SyncService {
 
   /// Get smart sync state (v2)
   ///
-  /// Uses: GET /api/v2/sync/state?user_id=xxx&device_id=xxx ✅
-  ///
-  /// Example:
-  /// ```dart
-  /// final state = await sync.getSmartSyncState(
-  ///   userId: 'user-123',
-  ///   deviceId: 'device-456',
-  /// );
-  /// ```
+  /// Uses: GET /api/v2/sync/state
   Future<SmartSyncState> getSmartSyncState({
-    required String userId,
+    required int userId,
     String? deviceId,
   }) async {
     try {
       final queryParams = {
-        'user_id': userId,
+        'user_id': userId.toString(),
         'device_id': deviceId ?? this.deviceId ?? 'default',
       };
 
       final response = await httpClient.get(
-        BridgeCoreEndpoints.smartSyncV2State, // ✅ /api/v2/sync/state
+        BridgeCoreEndpoints.smartSyncV2State,
         queryParams: queryParams,
       );
 
       return SmartSyncState.fromJson(response);
+    } on DioException catch (e) {
+      _handleSyncError(e);
+      rethrow;
+    }
+  }
+
+  /// Reset smart sync state (v2)
+  ///
+  /// Uses: POST /api/v2/sync/reset
+  Future<bool> resetSmartSyncState({
+    required int userId,
+    String? deviceId,
+  }) async {
+    try {
+      BridgeCoreLogger.warning('Resetting smart sync state...');
+
+      final queryParams = {
+        'user_id': userId.toString(),
+        'device_id': deviceId ?? this.deviceId ?? 'default',
+      };
+
+      // Build URL with query params
+      final url =
+          '${BridgeCoreEndpoints.smartSyncV2Reset}?user_id=$userId&device_id=${deviceId ?? this.deviceId ?? 'default'}';
+
+      final response = await httpClient.post(url, {});
+
+      _eventBus.emit(BridgeCoreEventTypes.syncStateReset, {
+        'user_id': userId,
+        'device_id': deviceId ?? this.deviceId,
+        'reset_at': DateTime.now().toIso8601String(),
+        'type': 'smart_sync_v2',
+      });
+
+      BridgeCoreLogger.info('Smart sync state reset successfully');
+
+      return response['success'] as bool? ?? true;
+    } on DioException catch (e) {
+      _handleSyncError(e);
+      rethrow;
+    }
+  }
+
+  /// Check smart sync health (v2)
+  ///
+  /// Uses: GET /api/v2/sync/health
+  Future<SyncHealthStatus> checkSmartSyncHealth() async {
+    try {
+      final response = await httpClient.get(
+        BridgeCoreEndpoints.smartSyncV2Health,
+      );
+
+      return SyncHealthStatus.fromJson(response);
     } on DioException catch (e) {
       _handleSyncError(e);
       rethrow;
@@ -526,19 +487,6 @@ class SyncService {
   // ════════════════════════════════════════════════════════════
 
   /// Start periodic update checking
-  ///
-  /// Example:
-  /// ```dart
-  /// sync.startPeriodicUpdateCheck(
-  ///   interval: Duration(minutes: 5),
-  ///   userId: 'user-123',
-  /// );
-  ///
-  /// // Listen for updates
-  /// BridgeCoreEventBus.instance.on('updates.available').listen((event) {
-  ///   showUpdateNotification();
-  /// });
-  /// ```
   void startPeriodicUpdateCheck({
     Duration? interval,
     String? userId,
@@ -586,19 +534,6 @@ class SyncService {
   OfflineSyncState? get cachedState => _cachedState;
 
   /// Full sync cycle (push local changes, then pull updates)
-  ///
-  /// Example:
-  /// ```dart
-  /// final result = await sync.fullSyncCycle(
-  ///   localChanges: myChanges,
-  ///   deviceId: 'device-123',
-  /// );
-  ///
-  /// if (result.hasConflicts) {
-  ///   // Handle conflicts
-  ///   await resolveConflicts(resolutions: myResolutions);
-  /// }
-  /// ```
   Future<FullSyncResult> fullSyncCycle({
     required Map<String, List<Map<String, dynamic>>> localChanges,
     String? deviceId,
@@ -730,12 +665,14 @@ class WebhookEvent {
 
   factory WebhookEvent.fromJson(Map<String, dynamic> json) {
     return WebhookEvent(
-      id: json['id'] as String,
-      eventType: json['event_type'] as String,
-      model: json['model'] as String,
-      data: json['data'] as Map<String, dynamic>,
+      id: json['id']?.toString() ?? '',
+      eventType: json['event_type'] as String? ?? '',
+      model: json['model'] as String? ?? '',
+      data: json['data'] as Map<String, dynamic>? ?? {},
       status: json['status'] as String? ?? 'pending',
-      createdAt: DateTime.parse(json['created_at'] as String),
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'] as String)
+          : DateTime.now(),
     );
   }
 }
@@ -753,18 +690,22 @@ class OfflineSyncPullResult {
   });
 
   factory OfflineSyncPullResult.fromJson(Map<String, dynamic> json) {
-    final dataMap = json['data'] as Map<String, dynamic>;
+    final dataMap = json['data'] as Map<String, dynamic>? ?? {};
     final convertedData = <String, List<Map<String, dynamic>>>{};
 
     dataMap.forEach((key, value) {
-      convertedData[key] =
-          (value as List).map((e) => e as Map<String, dynamic>).toList();
+      if (value is List) {
+        convertedData[key] =
+            value.map((e) => Map<String, dynamic>.from(e)).toList();
+      }
     });
 
     return OfflineSyncPullResult(
       data: convertedData,
       totalRecords: json['total_records'] as int? ?? 0,
-      syncedAt: DateTime.parse(json['synced_at'] as String),
+      syncedAt: json['synced_at'] != null
+          ? DateTime.parse(json['synced_at'] as String)
+          : DateTime.now(),
     );
   }
 }
@@ -783,13 +724,15 @@ class OfflineSyncPushResult {
 
   factory OfflineSyncPushResult.fromJson(Map<String, dynamic> json) {
     return OfflineSyncPushResult(
-      successful: (json['successful'] as List).cast<String>(),
-      failed: (json['failed'] as List)
-          .map((e) => e as Map<String, dynamic>)
-          .toList(),
-      conflicts: (json['conflicts'] as List)
-          .map((e) => e as Map<String, dynamic>)
-          .toList(),
+      successful: (json['successful'] as List?)?.cast<String>() ?? [],
+      failed: (json['failed'] as List?)
+              ?.map((e) => Map<String, dynamic>.from(e))
+              .toList() ??
+          [],
+      conflicts: (json['conflicts'] as List?)
+              ?.map((e) => Map<String, dynamic>.from(e))
+              .toList() ??
+          [],
     );
   }
 }
@@ -806,10 +749,11 @@ class ConflictResolutionResult {
 
   factory ConflictResolutionResult.fromJson(Map<String, dynamic> json) {
     return ConflictResolutionResult(
-      resolved: (json['resolved'] as List).cast<String>(),
-      failed: (json['failed'] as List)
-          .map((e) => e as Map<String, dynamic>)
-          .toList(),
+      resolved: (json['resolved'] as List?)?.cast<String>() ?? [],
+      failed: (json['failed'] as List?)
+              ?.map((e) => Map<String, dynamic>.from(e))
+              .toList() ??
+          [],
     );
   }
 }
@@ -830,7 +774,7 @@ class OfflineSyncState {
 
   factory OfflineSyncState.fromJson(Map<String, dynamic> json) {
     return OfflineSyncState(
-      deviceId: json['device_id'] as String,
+      deviceId: json['device_id'] as String? ?? 'unknown',
       lastSyncAt: json['last_sync_at'] != null
           ? DateTime.parse(json['last_sync_at'] as String)
           : null,
@@ -844,18 +788,27 @@ class OfflineSyncState {
 class SyncHealthStatus {
   final bool isHealthy;
   final String status;
+  final String? service;
+  final String? version;
+  final List<String>? features;
   final Map<String, dynamic>? details;
 
   SyncHealthStatus({
     required this.isHealthy,
     required this.status,
+    this.service,
+    this.version,
+    this.features,
     this.details,
   });
 
   factory SyncHealthStatus.fromJson(Map<String, dynamic> json) {
     return SyncHealthStatus(
-      isHealthy: json['healthy'] as bool? ?? false,
-      status: json['status'] as String,
+      isHealthy: json['healthy'] as bool? ?? json['status'] == 'healthy',
+      status: json['status'] as String? ?? 'unknown',
+      service: json['service'] as String?,
+      version: json['version'] as String?,
+      features: (json['features'] as List?)?.cast<String>(),
       details: json['details'] as Map<String, dynamic>?,
     );
   }
@@ -863,46 +816,69 @@ class SyncHealthStatus {
 
 /// Smart Sync Pull Result (V2)
 class SmartSyncPullResult {
-  final Map<String, dynamic> updates;
-  final int totalUpdates;
-  final DateTime syncedAt;
+  final bool hasUpdates;
+  final int newEventsCount;
+  final List<Map<String, dynamic>> events;
+  final String? nextSyncToken;
+  final DateTime? lastSyncTime;
+  final Map<String, dynamic>? syncState;
 
   SmartSyncPullResult({
-    required this.updates,
-    required this.totalUpdates,
-    required this.syncedAt,
+    required this.hasUpdates,
+    required this.newEventsCount,
+    required this.events,
+    this.nextSyncToken,
+    this.lastSyncTime,
+    this.syncState,
   });
 
   factory SmartSyncPullResult.fromJson(Map<String, dynamic> json) {
     return SmartSyncPullResult(
-      updates: json['updates'] as Map<String, dynamic>,
-      totalUpdates: json['total_updates'] as int? ?? 0,
-      syncedAt: DateTime.parse(json['synced_at'] as String),
+      hasUpdates: json['has_updates'] as bool? ?? false,
+      newEventsCount: json['new_events_count'] as int? ?? 0,
+      events: (json['events'] as List?)
+              ?.map((e) => Map<String, dynamic>.from(e))
+              .toList() ??
+          [],
+      nextSyncToken: json['next_sync_token'] as String?,
+      lastSyncTime: json['last_sync_time'] != null
+          ? DateTime.parse(json['last_sync_time'] as String)
+          : null,
+      syncState: json['sync_state'] as Map<String, dynamic>?,
     );
   }
 }
 
 /// Smart Sync State (V2)
 class SmartSyncState {
-  final String userId;
+  final int userId;
   final String deviceId;
+  final int? lastEventId;
   final DateTime? lastSyncAt;
+  final int syncCount;
+  final String status;
   final Map<String, dynamic>? state;
 
   SmartSyncState({
     required this.userId,
     required this.deviceId,
+    this.lastEventId,
     this.lastSyncAt,
+    required this.syncCount,
+    required this.status,
     this.state,
   });
 
   factory SmartSyncState.fromJson(Map<String, dynamic> json) {
     return SmartSyncState(
-      userId: json['user_id'] as String,
-      deviceId: json['device_id'] as String,
+      userId: json['user_id'] as int? ?? 0,
+      deviceId: json['device_id'] as String? ?? 'unknown',
+      lastEventId: json['last_event_id'] as int?,
       lastSyncAt: json['last_sync_at'] != null
           ? DateTime.parse(json['last_sync_at'] as String)
           : null,
+      syncCount: json['sync_count'] as int? ?? 0,
+      status: json['status'] as String? ?? 'unknown',
       state: json['state'] as Map<String, dynamic>?,
     );
   }
@@ -931,11 +907,8 @@ class SyncConflictException extends BridgeCoreException {
   final List<Map<String, dynamic>>? conflicts;
 
   SyncConflictException(
-    String message, {
-    int? statusCode,
+    super.message, {
+    super.statusCode,
     this.conflicts,
-  }) : super(
-          message,
-          statusCode: statusCode,
-        );
+  });
 }

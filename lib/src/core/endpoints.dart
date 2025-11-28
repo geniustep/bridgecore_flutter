@@ -274,78 +274,116 @@ class BridgeCoreEndpoints {
   static const String offlineSyncStatistics = '/api/v1/offline-sync/statistics';
 
   // ════════════════════════════════════════════════════════════
-  // Triggers Management (NOT YET SUPPORTED BY BACKEND)
-  // TODO: Implement these endpoints in BridgeCore Backend
+  // Smart Sync V2 (Compatible with BridgeCore Backend)
   // ════════════════════════════════════════════════════════════
 
-  // /// Create a new trigger
-  // /// POST /api/v1/triggers/create
-  // static const String triggerCreate = '/api/v1/triggers/create';
+  /// Smart sync pull - pulls only new changes since last sync
+  /// POST /api/v2/sync/pull
+  static const String smartSyncV2Pull = '/api/v2/sync/pull';
 
-  // /// List all triggers
-  // /// GET /api/v1/triggers/list
-  // static const String triggerList = '/api/v1/triggers/list';
+  /// Get smart sync state for user/device
+  /// GET /api/v2/sync/state
+  static const String smartSyncV2State = '/api/v2/sync/state';
 
-  // /// Get trigger details
-  // /// GET /api/v1/triggers/{id}
-  // static const String triggerGet = '/api/v1/triggers';
+  /// Reset smart sync state
+  /// POST /api/v2/sync/reset
+  static const String smartSyncV2Reset = '/api/v2/sync/reset';
 
-  // /// Update trigger
-  // /// PUT /api/v1/triggers/{id}
-  // static const String triggerUpdate = '/api/v1/triggers';
-
-  // /// Delete trigger
-  // /// DELETE /api/v1/triggers/{id}
-  // static const String triggerDelete = '/api/v1/triggers';
-
-  // /// Enable/disable trigger
-  // /// POST /api/v1/triggers/{id}/toggle
-  // static const String triggerToggle = '/api/v1/triggers';
-
-  // /// Get trigger execution history
-  // /// GET /api/v1/triggers/{id}/history
-  // static const String triggerHistory = '/api/v1/triggers';
-
-  // /// Execute trigger manually
-  // /// POST /api/v1/triggers/{id}/execute
-  // static const String triggerExecute = '/api/v1/triggers';
+  /// Smart sync health check
+  /// GET /api/v2/sync/health
+  static const String smartSyncV2Health = '/api/v2/sync/health';
 
   // ════════════════════════════════════════════════════════════
-  // Notifications (NOT YET SUPPORTED BY BACKEND)
-  // TODO: Implement these endpoints in BridgeCore Backend
+  // Triggers Management
   // ════════════════════════════════════════════════════════════
 
-  // /// Get user notifications
-  // /// GET /api/v1/notifications/list
-  // static const String notificationList = '/api/v1/notifications/list';
+  /// Create a new trigger
+  /// POST /api/v1/triggers/create
+  static const String triggerCreate = '/api/v1/triggers/create';
 
-  // /// Mark notification as read
-  // /// POST /api/v1/notifications/{id}/read
-  // static const String notificationMarkRead = '/api/v1/notifications';
+  /// List all triggers
+  /// GET /api/v1/triggers/list
+  static const String triggerList = '/api/v1/triggers/list';
 
-  // /// Mark all notifications as read
-  // /// POST /api/v1/notifications/read-all
-  // static const String notificationReadAll = '/api/v1/notifications/read-all';
+  /// Get trigger details
+  /// GET /api/v1/triggers/{id}
+  static const String triggerGet = '/api/v1/triggers';
 
-  // /// Delete notification
-  // /// DELETE /api/v1/notifications/{id}
-  // static const String notificationDelete = '/api/v1/notifications';
+  /// Update trigger
+  /// PUT /api/v1/triggers/{id}
+  static const String triggerUpdate = '/api/v1/triggers';
 
-  // /// Get notification preferences
-  // /// GET /api/v1/notifications/preferences
-  // static const String notificationPreferences = '/api/v1/notifications/preferences';
+  /// Delete trigger
+  /// DELETE /api/v1/triggers/{id}
+  static const String triggerDelete = '/api/v1/triggers';
 
-  // /// Update notification preferences
-  // /// PUT /api/v1/notifications/preferences
-  // static const String notificationUpdatePreferences = '/api/v1/notifications/preferences';
+  /// Enable/disable trigger
+  /// POST /api/v1/triggers/{id}/toggle
+  static const String triggerToggle = '/api/v1/triggers';
 
-  // /// Register device for push notifications
-  // /// POST /api/v1/notifications/register-device
-  // static const String notificationRegisterDevice = '/api/v1/notifications/register-device';
+  /// Get trigger execution history
+  /// GET /api/v1/triggers/{id}/history
+  static const String triggerHistory = '/api/v1/triggers';
 
-  // /// Unregister device
-  // /// POST /api/v1/notifications/unregister-device
-  // static const String notificationUnregisterDevice = '/api/v1/notifications/unregister-device';
+  /// Execute trigger manually
+  /// POST /api/v1/triggers/{id}/execute
+  static const String triggerExecute = '/api/v1/triggers';
+
+  /// Get trigger statistics
+  /// GET /api/v1/triggers/{id}/stats
+  static const String triggerStats = '/api/v1/triggers';
+
+  // ════════════════════════════════════════════════════════════
+  // Notifications
+  // ════════════════════════════════════════════════════════════
+
+  /// Get user notifications
+  /// GET /api/v1/notifications/list
+  static const String notificationList = '/api/v1/notifications/list';
+
+  /// Get notification by ID
+  /// GET /api/v1/notifications/{id}
+  static const String notificationGet = '/api/v1/notifications';
+
+  /// Mark notification as read
+  /// POST /api/v1/notifications/{id}/read
+  static const String notificationMarkRead = '/api/v1/notifications';
+
+  /// Mark multiple notifications as read
+  /// POST /api/v1/notifications/mark-read
+  static const String notificationMarkMultipleRead = '/api/v1/notifications/mark-read';
+
+  /// Mark all notifications as read
+  /// POST /api/v1/notifications/read-all
+  static const String notificationReadAll = '/api/v1/notifications/read-all';
+
+  /// Delete notification
+  /// DELETE /api/v1/notifications/{id}
+  static const String notificationDelete = '/api/v1/notifications';
+
+  /// Get notification preferences
+  /// GET /api/v1/notifications/preferences
+  static const String notificationPreferences = '/api/v1/notifications/preferences';
+
+  /// Update notification preferences
+  /// PUT /api/v1/notifications/preferences
+  static const String notificationUpdatePreferences = '/api/v1/notifications/preferences';
+
+  /// Register device for push notifications
+  /// POST /api/v1/notifications/register-device
+  static const String notificationRegisterDevice = '/api/v1/notifications/register-device';
+
+  /// Unregister device
+  /// POST /api/v1/notifications/unregister-device
+  static const String notificationUnregisterDevice = '/api/v1/notifications/unregister-device';
+
+  /// List registered devices
+  /// GET /api/v1/notifications/devices
+  static const String notificationDevices = '/api/v1/notifications/devices';
+
+  /// Get notification statistics
+  /// GET /api/v1/notifications/stats
+  static const String notificationStats = '/api/v1/notifications/stats';
 
   // ════════════════════════════════════════════════════════════
   // Utility Methods
@@ -427,11 +465,34 @@ class BridgeCoreEndpoints {
       offlineSyncReset,
       offlineSyncHealth,
       offlineSyncStatistics,
-      // Triggers & Notifications - NOT YET SUPPORTED
-      // triggerCreate,
-      // triggerList,
-      // notificationList,
-      // ...
+      // Smart Sync V2
+      smartSyncV2Pull,
+      smartSyncV2State,
+      smartSyncV2Reset,
+      smartSyncV2Health,
+      // Triggers
+      triggerCreate,
+      triggerList,
+      triggerGet,
+      triggerUpdate,
+      triggerDelete,
+      triggerToggle,
+      triggerHistory,
+      triggerExecute,
+      triggerStats,
+      // Notifications
+      notificationList,
+      notificationGet,
+      notificationMarkRead,
+      notificationMarkMultipleRead,
+      notificationReadAll,
+      notificationDelete,
+      notificationPreferences,
+      notificationUpdatePreferences,
+      notificationRegisterDevice,
+      notificationUnregisterDevice,
+      notificationDevices,
+      notificationStats,
     ];
   }
 }

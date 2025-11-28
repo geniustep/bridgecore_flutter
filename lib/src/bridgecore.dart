@@ -3,6 +3,9 @@ import 'auth/auth_service.dart';
 import 'auth/token_manager.dart';
 import 'odoo/odoo_service.dart';
 import 'core/logger.dart';
+import 'triggers/trigger_service.dart';
+import 'notifications/notification_service.dart';
+import 'sync/sync_service.dart';
 
 /// Main BridgeCore SDK class
 /// 
@@ -30,12 +33,24 @@ class BridgeCore {
   late final TokenManager _tokenManager;
   late final AuthService _authService;
   late final OdooService _odooService;
+  late final TriggerService _triggerService;
+  late final NotificationService _notificationService;
+  late final SyncService _syncService;
 
   /// Authentication service
   AuthService get auth => _authService;
   
   /// Odoo operations service
   OdooService get odoo => _odooService;
+
+  /// Trigger automation service
+  TriggerService get triggers => _triggerService;
+
+  /// Notification service
+  NotificationService get notifications => _notificationService;
+
+  /// Sync service (offline sync & smart sync)
+  SyncService get sync => _syncService;
 
   BridgeCore._internal({
     required String baseUrl,
@@ -66,6 +81,9 @@ class BridgeCore {
       tokenManager: _tokenManager,
     );
     _odooService = OdooService(httpClient: _httpClient);
+    _triggerService = TriggerService(httpClient: _httpClient);
+    _notificationService = NotificationService(httpClient: _httpClient);
+    _syncService = SyncService(httpClient: _httpClient);
   }
 
   /// Initialize BridgeCore SDK

@@ -63,3 +63,22 @@ export 'src/core/metrics.dart';
 
 // Client (optional - for advanced users)
 export 'src/client/retry_interceptor.dart';
+
+// Triggers
+export 'src/triggers/trigger_service.dart';
+export 'src/triggers/models/trigger.dart';
+export 'src/triggers/models/trigger_execution.dart';
+
+// Notifications
+export 'src/notifications/notification_service.dart';
+export 'src/notifications/models/notification.dart';
+export 'src/notifications/models/notification_preference.dart';
+export 'src/notifications/models/device_token.dart';
+
+// Sync
+export 'src/sync/sync_service.dart';
+
+// Events
+export 'src/events/event_bus.dart';
+export 'src/events/event_types.dart';
+export 'src/events/bridgecore_event.dart';
