@@ -60,6 +60,9 @@ class BridgeCoreHttpClient {
           final token = await tokenManager.getAccessToken();
           if (token != null && token.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $token';
+            BridgeCoreLogger.debug('🔑 Token added to request: ${token.substring(0, 20)}...');
+          } else {
+            BridgeCoreLogger.warning('⚠️ No token available for request: ${options.path}');
           }
 
           if (debugMode) {
