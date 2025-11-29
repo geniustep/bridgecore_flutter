@@ -50,10 +50,10 @@ class AppNotification {
   final DateTime? readAt;
   final String? actionType;
   final Map<String, dynamic>? actionData;
-  final String? relatedModel;
-  final int? relatedId;
-  final Map<String, dynamic>? metadata;
-  final DateTime? expiresAt;
+    final String? relatedModel;
+    final int? relatedId;
+    final Map<String, dynamic>? extraData; // Renamed from metadata to match backend
+    final DateTime? expiresAt;
   final String? source;
   final DateTime createdAt;
 
@@ -72,7 +72,7 @@ class AppNotification {
     this.actionData,
     this.relatedModel,
     this.relatedId,
-    this.metadata,
+    this.extraData,
     this.expiresAt,
     this.source,
     required this.createdAt,
@@ -94,7 +94,8 @@ class AppNotification {
       actionData: json['action_data'],
       relatedModel: json['related_model'],
       relatedId: json['related_id'],
-      metadata: json['metadata'],
+      // Support both extra_data (new) and metadata (old) for backward compatibility
+      extraData: json['extra_data'] ?? json['metadata'],
       expiresAt: json['expires_at'] != null
           ? DateTime.parse(json['expires_at'])
           : null,
@@ -119,7 +120,7 @@ class AppNotification {
       'action_data': actionData,
       'related_model': relatedModel,
       'related_id': relatedId,
-      'metadata': metadata,
+      'extra_data': extraData, // Backend expects extra_data
       'expires_at': expiresAt?.toIso8601String(),
       'source': source,
       'created_at': createdAt.toIso8601String(),
