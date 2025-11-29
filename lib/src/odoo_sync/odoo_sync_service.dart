@@ -7,7 +7,7 @@ library;
 
 import 'dart:async';
 import 'package:dio/dio.dart';
-import '../core/http_client.dart';
+import '../client/http_client.dart';
 import '../core/endpoints.dart';
 import '../core/logger.dart';
 import '../events/event_bus.dart';
@@ -75,7 +75,7 @@ class OdooSyncService {
 
       return result;
     } on DioException catch (e) {
-      BridgeCoreLogger.error('Failed to pull events from Odoo', e);
+      BridgeCoreLogger.error('Failed to pull events from Odoo', null, e);
       rethrow;
     }
   }
@@ -106,7 +106,7 @@ class OdooSyncService {
 
       return OdooAckResult.fromJson(response);
     } on DioException catch (e) {
-      BridgeCoreLogger.error('Failed to acknowledge events', e);
+      BridgeCoreLogger.error('Failed to acknowledge events', null, e);
       rethrow;
     }
   }
@@ -149,7 +149,7 @@ class OdooSyncService {
 
       return syncState;
     } on DioException catch (e) {
-      BridgeCoreLogger.error('Failed to get sync state', e);
+      BridgeCoreLogger.error('Failed to get sync state', null, e);
       rethrow;
     }
   }
@@ -189,7 +189,7 @@ class OdooSyncService {
 
       return syncState;
     } on DioException catch (e) {
-      BridgeCoreLogger.error('Failed to update sync state', e);
+      BridgeCoreLogger.error('Failed to update sync state', null, e);
       rethrow;
     }
   }
@@ -216,7 +216,7 @@ class OdooSyncService {
 
       return OdooSyncStatistics.fromJson(response['stats']);
     } on DioException catch (e) {
-      BridgeCoreLogger.error('Failed to get sync statistics', e);
+      BridgeCoreLogger.error('Failed to get sync statistics', null, e);
       rethrow;
     }
   }
@@ -269,7 +269,7 @@ class OdooSyncService {
 
       return result;
     } on DioException catch (e) {
-      BridgeCoreLogger.error('Smart pull failed', e);
+      BridgeCoreLogger.error('Smart pull failed', null, e);
       rethrow;
     }
   }
@@ -289,7 +289,7 @@ class OdooSyncService {
 
       return OdooSyncHealth.fromJson(response);
     } on DioException catch (e) {
-      BridgeCoreLogger.error('Health check failed', e);
+      BridgeCoreLogger.error('Health check failed', null, e);
       return OdooSyncHealth(
         status: 'error',
         odooConnected: false,
@@ -310,7 +310,7 @@ class OdooSyncService {
 
       return response['stats'] as Map<String, dynamic>? ?? {};
     } on DioException catch (e) {
-      BridgeCoreLogger.error('Failed to get statistics', e);
+      BridgeCoreLogger.error('Failed to get statistics', null, e);
       rethrow;
     }
   }
@@ -401,7 +401,7 @@ class OdooSyncService {
         syncState: updatedState,
       );
     } catch (e) {
-      BridgeCoreLogger.error('Full sync failed', e);
+      BridgeCoreLogger.error('Full sync failed', null, e);
       return OdooFullSyncResult(
         success: false,
         events: [],
@@ -706,4 +706,3 @@ class OdooFullSyncResult {
     this.error,
   });
 }
-

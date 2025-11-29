@@ -10,7 +10,7 @@ import 'odoo_sync/odoo_sync_service.dart';
 import 'events/event_bus.dart';
 
 /// Main BridgeCore SDK class
-/// 
+///
 /// Initialize once in your app:
 /// ```dart
 /// void main() {
@@ -20,13 +20,12 @@ import 'events/event_bus.dart';
 /// ```
 class BridgeCore {
   static BridgeCore? _instance;
-  
+
   /// Get the singleton instance
   static BridgeCore get instance {
     if (_instance == null) {
       throw Exception(
-        'BridgeCore not initialized. Call BridgeCore.initialize() first.'
-      );
+          'BridgeCore not initialized. Call BridgeCore.initialize() first.');
     }
     return _instance!;
   }
@@ -43,7 +42,7 @@ class BridgeCore {
 
   /// Authentication service
   AuthService get auth => _authService;
-  
+
   /// Odoo operations service
   OdooService get odoo => _odooService;
 
@@ -93,15 +92,15 @@ class BridgeCore {
     _odooService = OdooService(httpClient: _httpClient);
     _triggerService = TriggerService(httpClient: _httpClient);
     _notificationService = NotificationService(httpClient: _httpClient);
-    _eventBus = BridgeCoreEventBus();
+    _eventBus = BridgeCoreEventBus.instance;
     _syncService = SyncService(httpClient: _httpClient);
     _odooSyncService = OdooSyncService(_httpClient, _eventBus);
   }
 
   /// Initialize BridgeCore SDK
-  /// 
+  ///
   /// Must be called before using the SDK
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// BridgeCore.initialize(
