@@ -65,16 +65,10 @@ class BridgeCoreHttpClient {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
-          // Skip auth for login/refresh endpoints
-          final isAuthEndpoint = options.path == BridgeCoreEndpoints.login ||
-              options.path == BridgeCoreEndpoints.refresh;
-
-          if (!isAuthEndpoint) {
-            // Get valid token (will refresh if needed)
-            final token = await tokenManager.getValidAccessToken();
-            if (token != null && token.isNotEmpty) {
-              options.headers['Authorization'] = 'Bearer $token';
-            }
+          // Add token to requests
+          final token = await tokenManager.getAccessToken();
+          if (token != null && token.isNotEmpty) {
+            options.headers['Authorization'] = 'Bearer $token';
           }
 
           if (debugMode) {
