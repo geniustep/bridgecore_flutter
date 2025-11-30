@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../client/http_client.dart';
 import '../core/endpoints.dart';
 import 'token_manager.dart';
@@ -7,6 +9,12 @@ import 'models/odoo_fields_check.dart';
 import 'models/tenant_me_response.dart';
 
 /// Authentication service
+/// 
+/// Handles user authentication, token management, and session state.
+/// Works with [TokenManager] for smart token handling including:
+/// - Proactive token refresh before expiry
+/// - Offline-aware session state
+/// - Concurrency-safe refresh operations
 class AuthService {
   final BridgeCoreHttpClient httpClient;
   final TokenManager tokenManager;
@@ -22,7 +30,25 @@ class AuthService {
   });
 
   /// Check if user is logged in
+  /// 
+  /// For offline-first apps: returns true if we have tokens that can
+  /// potentially be used (either valid access or valid refresh token).
+  /// This allows the app to work offline even if access token expired.
   Future<bool> get isLoggedIn => tokenManager.hasTokens();
+
+  /// Check if user has a valid access token right now
+  /// 
+  /// Use this when you need to guarantee the token will work immediately.
+  Future<bool> get hasValidSession => tokenManager.hasValidAccessToken();
+
+  /// Get current authentication state
+  /// 
+  /// Returns detailed state for UI decisions:
+  /// - [TokenAuthState.authenticated]: Valid access token
+  /// - [TokenAuthState.needsRefresh]: Access expired but can refresh
+  /// - [TokenAuthState.sessionExpired]: All tokens expired
+  /// - [TokenAuthState.unauthenticated]: No tokens stored
+  Future<TokenAuthState> get authState => tokenManager.getAuthState();
 
   /// Login with email and password
   ///
@@ -63,52 +89,44 @@ class AuthService {
 
     final session = TenantSession.fromJson(response);
 
-    // Save tokens
+    // Save tokens with expiry metadata
     await tokenManager.saveTokens(
-      session.accessToken,
-      session.refreshToken,
+      accessToken: session.accessToken,
+      refreshToken: session.refreshToken,
+      expiresIn: session.expiresIn,
     );
 
     return session;
   }
 
-  /// Refresh access token using refresh token
+  /// Refresh access token
   ///
-  /// Returns new access token
+  /// Returns new access token. This is handled automatically by
+  /// [TokenManager.getValidAccessToken()], but can be called manually
+  /// if needed.
   ///
   /// Throws [UnauthorizedException] if refresh token is invalid
   Future<String> refreshToken() async {
-    final refreshToken = await tokenManager.getRefreshToken();
-
-    if (refreshToken == null) {
-      throw Exception('No refresh token available');
+    final newToken = await tokenManager.forceRefresh();
+    
+    if (newToken == null) {
+      throw Exception('Failed to refresh token - please login again');
     }
-
-    // Set Authorization header manually for refresh
-    final oldToken = await tokenManager.getAccessToken();
-    await tokenManager.saveTokens(refreshToken, refreshToken);
-
-    try {
-      final response = await httpClient.post(
-        BridgeCoreEndpoints.refresh,
-        {},
-      );
-
-      final newAccessToken = response['access_token'] as String;
-
-      // Save new access token (keep same refresh token)
-      await tokenManager.saveTokens(newAccessToken, refreshToken);
-
-      return newAccessToken;
-    } catch (e) {
-      // Restore old token if refresh failed
-      if (oldToken != null) {
-        await tokenManager.saveTokens(oldToken, refreshToken);
-      }
-      rethrow;
-    }
+    
+    return newToken;
   }
 
+  /// Get token information for debugging/UI
+  /// 
+  /// Returns details about current token state:
+  /// - hasTokens: Whether any tokens exist
+  /// - isAccessExpired: Whether access token is expired
+  /// - isRefreshExpired: Whether refresh token is expired
+  /// - accessExpiresIn: Minutes until access expires
+  /// - refreshExpiresIn: Days until refresh expires
+  Future<Map<String, dynamic>> getTokenInfo() async {
+    return tokenManager.getTokenInfo();
+  }
 
   /// Get current user information with enhanced Odoo data
   ///
@@ -192,5 +210,62 @@ class AuthService {
       await tokenManager.clearTokens();
       clearMeCache();
     }
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // Token Validation
+  // ════════════════════════════════════════════════════════════
+
+  /// Validate that the stored token is a proper tenant token
+  /// 
+  /// This checks if the JWT token contains the required claims:
+  /// - user_type: "tenant"
+  /// - tenant_id: not null
+  /// 
+  /// If the token is invalid, it means the user needs to re-login
+  /// to get a proper tenant token.
+  /// 
+  /// Returns a map with:
+  /// - `isValid`: true if token is a valid tenant token
+  /// - `reason`: explanation if invalid
+  /// - `userType`, `tenantId`, `sub`: token claims
+  Future<Map<String, dynamic>> validateToken() async {
+    return tokenManager.validateTenantToken();
+  }
+
+  /// Check if the current token is a valid tenant token
+  /// 
+  /// Returns true only if the token has proper tenant claims.
+  /// Use this to determine if the user needs to re-login.
+  Future<bool> hasValidTenantToken() async {
+    return tokenManager.isTenantToken();
+  }
+
+  /// Get detailed token information for debugging
+  /// 
+  /// Useful for diagnosing authentication issues.
+  Future<Map<String, dynamic>> getDetailedTokenInfo() async {
+    return tokenManager.getDetailedTokenInfo();
+  }
+
+  /// Validate token and logout if invalid
+  /// 
+  /// This is a convenience method that:
+  /// 1. Validates the token is a proper tenant token
+  /// 2. If invalid, automatically logs out the user
+  /// 3. Returns whether the token was valid
+  /// 
+  /// Use this at app startup to ensure clean state.
+  Future<bool> validateAndCleanup() async {
+    final validation = await validateToken();
+    
+    if (validation['isValid'] != true) {
+      debugPrint('[AuthService] ⚠️ Invalid token detected: ${validation['reason']}');
+      debugPrint('[AuthService] 🔄 Clearing invalid tokens...');
+      await logout();
+      return false;
+    }
+    
+    return true;
   }
 }

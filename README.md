@@ -1,28 +1,45 @@
-# BridgeCore Flutter SDK v3.0.0
+# BridgeCore Flutter SDK v3.1.0
 
-Official Flutter SDK for BridgeCore API - Complete Odoo 18 integration with full sync, triggers, and notifications support.
+Official Flutter SDK for BridgeCore API - Complete Odoo 18 integration with smart token management, full sync, triggers, and notifications support.
 
-## 🎉 What's New in v3.0.0
+## 🎉 What's New in v3.1.1
 
-- ✅ **Smart Sync V2** - Efficient sync with only changed records
-- ✅ **Offline Sync** - Full offline support with push/pull and conflict resolution
-- ✅ **Server-Side Triggers** - Create and manage automation triggers
-- ✅ **Notifications API** - Full notification management with device registration
-- ✅ **Event Bus** - Central event system for all SDK events
-- ✅ **Webhook Events** - Real-time update notifications
+- ✅ **Tenant Token Validation** - Validate JWT contains required tenant claims
+- ✅ **MissingOdooCredentialsException** - Specific exception for invalid tokens
+- ✅ **Auto Token Cleanup** - Automatically clear invalid tokens
+- ✅ **Detailed Token Info** - Get comprehensive token diagnostics
+
+## ✨ v3.1.0 Features
+
+- ✅ **Smart Token Management** - Proactive token refresh before expiry
+- ✅ **Offline-Aware Auth** - Work offline with cached credentials
+- ✅ **Concurrency Control** - Single refresh for multiple requests
+- ✅ **Token Expiry Tracking** - Know exactly when tokens expire
+- ✅ **AuthTokens Model** - Full token metadata with expiry info
 
 ## ✨ Features
+
+### 🔐 Smart Authentication (v3.1.1)
+- ✅ **Tenant Token Validation** - Validate JWT contains `user_type: "tenant"` and `tenant_id`
+- ✅ **MissingOdooCredentialsException** - Specific exception when token lacks Odoo credentials
+- ✅ **Auto Token Cleanup** - Automatically clear invalid tokens on validation failure
+- ✅ **Detailed Token Diagnostics** - Get comprehensive info about token validity
+- ✅ **Proactive Token Refresh** - Refresh tokens before they expire
+- ✅ **Offline Session Support** - Continue working when offline
+- ✅ **Token State Management** - `authenticated`, `needsRefresh`, `sessionExpired`, `unauthenticated`
+- ✅ **Concurrency Safe** - Multiple requests share single refresh
+- ✅ **Expiry Metadata** - Track token validity with `AuthTokens` model
+- ✅ **Auto Migration** - Seamlessly migrate from legacy token storage
 
 ### Core Features
 - ✅ **Easy Authentication** - Login, refresh, logout with automatic token management
 - ✅ **33 Odoo Operations** - Complete CRUD, search, advanced, views, permissions, and custom operations
 - ✅ **Odoo 18 Context** - Full support for language, timezone, company context
-- ✅ **Auto Token Refresh** - Automatic token refresh on expiry
 - ✅ **Comprehensive Exceptions** - 10 specialized exception types
 - ✅ **Null Safety** - Full null safety support
 - ✅ **Type Safe** - Strongly typed models and responses
 
-### Sync Features (NEW in v3.0.0)
+### Sync Features
 - ✅ **Offline Sync** - Push local changes, pull server updates
 - ✅ **Smart Sync V2** - Efficient incremental sync
 - ✅ **Conflict Resolution** - Resolve sync conflicts
@@ -31,14 +48,14 @@ Official Flutter SDK for BridgeCore API - Complete Odoo 18 integration with full
 - ✅ **Sync State** - Track sync status per device
 - ✅ **Periodic Sync** - Automatic background sync
 
-### Triggers Features (NEW in v3.0.0)
+### Triggers Features
 - ✅ **Create Triggers** - Notification, email, webhook, Odoo method triggers
 - ✅ **Manage Triggers** - Enable/disable, update, delete triggers
 - ✅ **Execute Manually** - Test triggers with specific records
 - ✅ **Execution History** - Track trigger executions
 - ✅ **Statistics** - Get trigger performance stats
 
-### Notifications Features (NEW in v3.0.0)
+### Notifications Features
 - ✅ **List Notifications** - Get user notifications with filtering
 - ✅ **Mark as Read** - Single, multiple, or all notifications
 - ✅ **Preferences** - Manage notification preferences
@@ -62,7 +79,7 @@ dependencies:
   bridgecore_flutter:
     git:
       url: https://github.com/geniustep/bridgecore_flutter.git
-      ref: 3.0.0
+      ref: 3.1.0
 ```
 
 ## 🚀 Quick Start
@@ -93,7 +110,7 @@ void main() {
 }
 ```
 
-### 2. Login
+### 2. Login with Smart Token Management
 
 ```dart
 try {
@@ -103,13 +120,64 @@ try {
   );
 
   print('Logged in as: ${session.user.fullName}');
-  print('User ID: ${session.user.odooUserId}');
+  print('Token expires in: ${session.expiresIn} seconds');
+  
+  // Tokens are automatically saved with expiry metadata
 } on UnauthorizedException catch (e) {
   print('Login failed: ${e.message}');
 }
 ```
 
-### 3. Use Sync Service
+### 3. Check Auth State (Offline-Aware)
+
+```dart
+// Get detailed auth state
+final authState = await BridgeCore.instance.auth.authState;
+
+switch (authState) {
+  case TokenAuthState.authenticated:
+    print('✅ Fully authenticated');
+    break;
+  case TokenAuthState.needsRefresh:
+    print('🔄 Token expired but can be refreshed');
+    // Will auto-refresh on next API call
+    break;
+  case TokenAuthState.sessionExpired:
+    print('❌ Session expired - must login again');
+    break;
+  case TokenAuthState.unauthenticated:
+    print('👤 Not logged in');
+    break;
+}
+
+// Simple check
+final isLoggedIn = await BridgeCore.instance.auth.isLoggedIn;
+
+// Check if has valid session (for offline apps)
+final hasValidSession = await BridgeCore.instance.auth.hasValidSession;
+
+// Get token info for debugging
+final tokenInfo = await BridgeCore.instance.auth.getTokenInfo();
+print('Access expires in: ${tokenInfo['accessExpiresIn']} minutes');
+print('Refresh expires in: ${tokenInfo['refreshExpiresIn']} days');
+```
+
+### 4. Making API Calls (Auto Token Refresh)
+
+```dart
+// Token is automatically refreshed before expiry
+// No need to handle 401 manually in most cases
+final records = await BridgeCore.instance.odoo.searchRead(
+  model: 'sale.order',
+  domain: [['state', '=', 'sale']],
+  fields: ['name', 'amount_total'],
+);
+
+// If you need to force refresh
+await BridgeCore.instance.auth.refreshToken();
+```
+
+### 5. Use Sync Service
 
 ```dart
 final sync = BridgeCore.instance.sync;
@@ -141,7 +209,7 @@ final fullResult = await sync.fullSyncCycle(
 );
 ```
 
-### 4. Use Triggers Service
+### 6. Use Triggers Service
 
 ```dart
 final triggers = BridgeCore.instance.triggers;
@@ -170,7 +238,7 @@ final result = await triggers.execute(
 );
 ```
 
-### 5. Use Notifications Service
+### 7. Use Notifications Service
 
 ```dart
 final notifications = BridgeCore.instance.notifications;
@@ -198,7 +266,7 @@ await notifications.registerDevice(
 );
 ```
 
-### 6. Use Event Bus
+### 8. Use Event Bus
 
 ```dart
 final eventBus = BridgeCoreEventBus.instance;
@@ -228,6 +296,90 @@ final event = await eventBus.waitFor(
 );
 ```
 
+## 📖 Smart Token Management API
+
+### AuthTokens Model
+
+```dart
+class AuthTokens {
+  final String accessToken;
+  final String refreshToken;
+  final DateTime? accessExpiresAt;
+  final DateTime? refreshExpiresAt;
+  final DateTime savedAt;
+
+  // Check if access token is expired (with 30s buffer)
+  bool get isAccessExpired;
+  
+  // Check if refresh token is expired
+  bool get isRefreshExpired;
+  
+  // Check if we have any valid session
+  bool get hasValidSession;
+  
+  // Time until access token expires
+  Duration? get accessExpiresIn;
+  
+  // Time until refresh token expires
+  Duration? get refreshExpiresIn;
+}
+```
+
+### TokenAuthState Enum
+
+```dart
+enum TokenAuthState {
+  /// User is authenticated with valid tokens
+  authenticated,
+  
+  /// User has tokens but access is expired (can be refreshed)
+  needsRefresh,
+  
+  /// All tokens expired - user must login
+  sessionExpired,
+  
+  /// No tokens stored - user never logged in
+  unauthenticated,
+}
+```
+
+### TokenManager Methods
+
+```dart
+final tokenManager = BridgeCore.instance.tokenManager;
+
+// Get valid access token (auto-refreshes if needed)
+final token = await tokenManager.getValidAccessToken();
+
+// Get current auth state
+final state = await tokenManager.getAuthState();
+
+// Check if has any tokens
+final hasTokens = await tokenManager.hasTokens();
+
+// Check if has valid (non-expired) access token
+final hasValid = await tokenManager.hasValidAccessToken();
+
+// Force refresh
+final newToken = await tokenManager.forceRefresh();
+
+// Get token info
+final info = await tokenManager.getTokenInfo();
+// Returns: {
+//   hasTokens: true,
+//   isAccessExpired: false,
+//   isRefreshExpired: false,
+//   accessExpiresIn: 45, // minutes
+//   refreshExpiresIn: 29, // days
+//   accessExpiresAt: '2025-11-30T15:30:00Z',
+//   refreshExpiresAt: '2025-12-30T12:00:00Z',
+//   savedAt: '2025-11-30T12:00:00Z',
+// }
+
+// Clear all tokens (logout)
+await tokenManager.clearTokens();
+```
+
 ## 📖 Complete API Reference
 
 ### Authentication (AuthService)
@@ -238,10 +390,20 @@ final auth = BridgeCore.instance.auth;
 // Login
 final session = await auth.login(email: '...', password: '...');
 
+// Get auth state
+final state = await auth.authState; // TokenAuthState enum
+
+// Check login status
+final isLoggedIn = await auth.isLoggedIn; // Has any valid tokens
+final hasValidSession = await auth.hasValidSession; // Has non-expired access
+
 // Get current user info
 final me = await auth.me(forceRefresh: true);
 print('Partner ID: ${me.partnerId}');
 print('Is Admin: ${me.isAdmin}');
+
+// Get token info
+final tokenInfo = await auth.getTokenInfo();
 
 // Refresh token
 await auth.refreshToken();
@@ -404,6 +566,10 @@ All events emitted by the SDK:
 ```dart
 try {
   await BridgeCore.instance.auth.login(...);
+} on MissingOdooCredentialsException catch (e) {
+  // Token doesn't contain tenant info - user must re-login
+  print('Invalid token - please login again');
+  await BridgeCore.instance.auth.logout();
 } on PaymentRequiredException catch (e) {
   print('Trial expired');
 } on AccountDeletedException catch (e) {
@@ -420,6 +586,30 @@ try {
   print('Sync conflict: ${e.conflicts}');
 } on BridgeCoreException catch (e) {
   print('Error: ${e.message}');
+}
+```
+
+### Tenant Token Validation (NEW in v3.1.1)
+
+```dart
+// Validate that token is a proper tenant token
+final validationResult = await BridgeCore.instance.auth.validateTenantToken();
+print('Is valid: ${validationResult['isValid']}');
+print('Reason: ${validationResult['reason']}');
+print('User type: ${validationResult['userType']}');
+print('Tenant ID: ${validationResult['tenantId']}');
+
+// Quick check
+final isValidTenant = await BridgeCore.instance.auth.hasValidTenantToken();
+if (!isValidTenant) {
+  // Token is missing tenant claims - user must re-login
+  await BridgeCore.instance.auth.logout();
+}
+
+// Validate and auto-cleanup invalid tokens
+final isValid = await BridgeCore.instance.auth.validateAndCleanup();
+if (!isValid) {
+  // Tokens were cleared - redirect to login
 }
 ```
 
@@ -465,20 +655,24 @@ try {
 - **Flutter:** >=3.0.0
 - **Dart:** >=3.0.0
 
-## 📝 Migration from v2.x
+## 📝 Migration from v3.0.x
 
-All v2.x APIs remain unchanged. New features are additive:
+All v3.0.x APIs remain unchanged. New features are additive:
 
 ```dart
-// v2.x code still works
-await odoo.searchRead(...);
-await odoo.custom.actionConfirm(...);
+// v3.0.x code still works
+await BridgeCore.instance.auth.login(...);
+await BridgeCore.instance.auth.isLoggedIn;
 
-// New v3.0.0 features
-await BridgeCore.instance.sync.smartPull(...);
-await BridgeCore.instance.triggers.create(...);
-await BridgeCore.instance.notifications.list();
+// New v3.1.0 features
+final authState = await BridgeCore.instance.auth.authState;
+final tokenInfo = await BridgeCore.instance.auth.getTokenInfo();
+final hasValidSession = await BridgeCore.instance.auth.hasValidSession;
 ```
+
+### Token Storage Migration
+
+The SDK automatically migrates tokens from the old format to the new format with expiry metadata. No action required.
 
 ## 🤝 Support
 
@@ -492,6 +686,6 @@ MIT License
 
 ---
 
-**Version:** 3.0.0  
-**Last Updated:** 2025-11-28  
+**Version:** 3.1.1  
+**Last Updated:** 2025-11-30  
 **Odoo Compatibility:** 14, 15, 16, 17, 18

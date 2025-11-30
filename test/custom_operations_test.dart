@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:bridgecore_flutter/bridgecore_flutter.dart';
 import 'package:bridgecore_flutter/src/client/http_client.dart';
-import 'package:bridgecore_flutter/src/auth/token_manager.dart';
 
 void main() {
   group('CustomOperations - Odoo 18', () {
@@ -462,7 +461,15 @@ class MockTokenManager extends TokenManager {
   Future<String?> getRefreshToken() async => 'mock_refresh_token';
 
   @override
-  Future<void> saveTokens(String accessToken, String refreshToken) async {}
+  Future<void> saveTokens({
+    required String accessToken,
+    required String refreshToken,
+    required int expiresIn,
+    int? refreshExpiresIn,
+  }) async {}
+
+  @override
+  Future<String?> getValidAccessToken() async => 'mock_access_token';
 
   @override
   Future<void> clearTokens() async {}

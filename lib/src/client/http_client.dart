@@ -8,6 +8,12 @@ import '../core/logger.dart';
 import 'retry_interceptor.dart';
 
 /// HTTP client for BridgeCore API using Dio
+///
+/// Features:
+/// - Smart token management with proactive refresh
+/// - Automatic retry on transient failures
+/// - Response caching
+/// - Request metrics and logging
 class BridgeCoreHttpClient {
   final String baseUrl;
   final TokenManager tokenManager;
@@ -41,6 +47,9 @@ class BridgeCoreHttpClient {
       ),
     );
 
+    // Setup refresh callback for TokenManager
+    tokenManager.setRefreshCallback(_performTokenRefresh);
+
     // Add retry interceptor (before auth interceptor)
     if (_retryEnabled) {
       _dio.interceptors.add(
@@ -52,14 +61,20 @@ class BridgeCoreHttpClient {
       );
     }
 
-    // Add auth interceptor
+    // Add smart auth interceptor
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
-          // Add token to requests
-          final token = await tokenManager.getAccessToken();
-          if (token != null && token.isNotEmpty) {
-            options.headers['Authorization'] = 'Bearer $token';
+          // Skip auth for login/refresh endpoints
+          final isAuthEndpoint = options.path == BridgeCoreEndpoints.login ||
+              options.path == BridgeCoreEndpoints.refresh;
+
+          if (!isAuthEndpoint) {
+            // Get valid token (will refresh if needed)
+            final token = await tokenManager.getValidAccessToken();
+            if (token != null && token.isNotEmpty) {
+              options.headers['Authorization'] = 'Bearer $token';
+            }
           }
 
           if (debugMode) {
@@ -86,23 +101,35 @@ class BridgeCoreHttpClient {
                 'Request error: ${error.message}', null, error);
           }
 
-          // Auto token refresh on 401
+          // Handle 401 as fallback (in case server revoked token)
+          // This should rarely happen since we proactively refresh
           if (error.response?.statusCode == 401) {
-            try {
-              await _refreshToken();
+            final isRefreshEndpoint =
+                error.requestOptions.path == BridgeCoreEndpoints.refresh;
 
-              // Retry original request
-              final options = error.requestOptions;
-              final token = await tokenManager.getAccessToken();
-              if (token != null) {
-                options.headers['Authorization'] = 'Bearer $token';
+            if (!isRefreshEndpoint) {
+              BridgeCoreLogger.warning(
+                  'Got 401 despite proactive refresh - token may have been revoked');
+
+              // Try force refresh once
+              try {
+                final newToken = await tokenManager.forceRefresh();
+
+                if (newToken != null) {
+                  // Retry original request with new token
+                  final options = error.requestOptions;
+                  options.headers['Authorization'] = 'Bearer $newToken';
+
+                  final response = await _dio.fetch(options);
+                  return handler.resolve(response);
+                }
+              } catch (e) {
+                BridgeCoreLogger.error('Force refresh failed', null, e);
               }
-
-              final response = await _dio.fetch(options);
-              return handler.resolve(response);
-            } catch (e) {
-              return handler.next(error);
             }
+
+            // Clear tokens if refresh failed
+            await tokenManager.clearTokens();
           }
 
           return handler.next(error);
@@ -120,26 +147,20 @@ class BridgeCoreHttpClient {
     }
   }
 
-  /// Refresh token
-  Future<void> _refreshToken() async {
-    final refreshToken = await tokenManager.getRefreshToken();
-    if (refreshToken == null) {
-      throw Exception('No refresh token');
-    }
+  /// Perform token refresh (called by TokenManager)
+  Future<Map<String, dynamic>> _performTokenRefresh(String refreshToken) async {
+    BridgeCoreLogger.debug('Performing token refresh...');
 
-    try {
-      final refreshDio = Dio(BaseOptions(baseUrl: baseUrl));
-      refreshDio.options.headers['Authorization'] = 'Bearer $refreshToken';
+    // Use a separate Dio instance to avoid interceptor loop
+    final refreshDio = Dio(BaseOptions(baseUrl: baseUrl));
+    refreshDio.options.headers['Authorization'] = 'Bearer $refreshToken';
 
-      final response =
-          await refreshDio.post(BridgeCoreEndpoints.refresh, data: {});
+    final response = await refreshDio.post(
+      BridgeCoreEndpoints.refresh,
+      data: {},
+    );
 
-      final newAccessToken = response.data['access_token'] as String;
-      await tokenManager.saveTokens(newAccessToken, refreshToken);
-    } catch (e) {
-      await tokenManager.clearTokens();
-      rethrow;
-    }
+    return response.data as Map<String, dynamic>;
   }
 
   void setCustomHeader(String key, String value) {
@@ -289,6 +310,18 @@ class BridgeCoreHttpClient {
           originalError: error,
         );
       case 400:
+        // Check for Missing Odoo Credentials error
+        if (message.contains('Missing Odoo credentials') ||
+            message.contains('tenant JWT token')) {
+          throw MissingOdooCredentialsException(
+            message,
+            statusCode: statusCode,
+            endpoint: requestOptions.path,
+            method: requestOptions.method,
+            details: details,
+            originalError: error,
+          );
+        }
         throw ValidationException(
           message,
           statusCode: statusCode,

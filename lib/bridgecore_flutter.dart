@@ -3,6 +3,8 @@ export 'src/bridgecore.dart';
 
 // Auth
 export 'src/auth/auth_service.dart';
+export 'src/auth/token_manager.dart';
+export 'src/auth/models/auth_tokens.dart';
 export 'src/auth/models/login_request.dart';
 export 'src/auth/models/tenant_session.dart';
 export 'src/auth/models/user_info.dart';

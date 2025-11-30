@@ -151,3 +151,23 @@ class ServerException extends BridgeCoreException {
     super.details,
   });
 }
+
+/// 400 - Missing Odoo Credentials (token doesn't contain tenant info)
+/// 
+/// This exception is thrown when the JWT token doesn't contain the required
+/// Odoo credentials. This typically happens when:
+/// - Using a legacy token that doesn't have tenant info embedded
+/// - The token was created before tenant-based auth was implemented
+/// - The token is corrupted or incomplete
+/// 
+/// The recommended action is to logout and login again to get a fresh token.
+class MissingOdooCredentialsException extends BridgeCoreException {
+  MissingOdooCredentialsException(
+    super.message, {
+    super.statusCode,
+    super.originalError,
+    super.endpoint,
+    super.method,
+    super.details,
+  });
+}

@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:bridgecore_flutter/bridgecore_flutter.dart';
 import 'package:bridgecore_flutter/src/client/http_client.dart';
-import 'package:bridgecore_flutter/src/auth/token_manager.dart';
 
 void main() {
   group('OdooService', () {
@@ -82,13 +81,21 @@ void main() {
 /// No-op token manager to avoid secure storage in tests
 class _DummyTokenManager extends TokenManager {
   @override
-  Future<void> saveTokens(String accessToken, String refreshToken) async {}
+  Future<void> saveTokens({
+    required String accessToken,
+    required String refreshToken,
+    required int expiresIn,
+    int? refreshExpiresIn,
+  }) async {}
 
   @override
   Future<String?> getAccessToken() async => 'token';
 
   @override
   Future<String?> getRefreshToken() async => 'refresh';
+
+  @override
+  Future<String?> getValidAccessToken() async => 'token';
 
   @override
   Future<bool> hasTokens() async => true;
