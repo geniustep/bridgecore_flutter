@@ -51,6 +51,10 @@ class TokenManager {
 
   // In-memory cache for performance
   AuthTokens? _cachedTokens;
+  
+  // Throttle logging to avoid spam
+  DateTime? _lastLogTime;
+  static const _logThrottleDuration = Duration(seconds: 30);
 
   /// Set the refresh callback
   /// 
@@ -135,7 +139,12 @@ class TokenManager {
 
     // Token still valid - return it
     if (!tokens.isAccessExpired) {
-      debugPrint('[TokenManager] 🔑 Token valid (expires in ${tokens.accessExpiresIn?.inMinutes}min)');
+      // Throttle logging to avoid spam (log only once every 30 seconds)
+      final now = DateTime.now();
+      if (_lastLogTime == null || now.difference(_lastLogTime!) > _logThrottleDuration) {
+        debugPrint('[TokenManager] 🔑 Token valid (expires in ${tokens.accessExpiresIn?.inMinutes}min)');
+        _lastLogTime = now;
+      }
       return tokens.accessToken;
     }
 

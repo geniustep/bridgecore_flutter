@@ -57,6 +57,38 @@ class UnauthorizedException extends BridgeCoreException {
   });
 }
 
+/// 401 - Session Expired (refresh token also expired)
+/// 
+/// This is thrown when:
+/// - The access token is expired AND
+/// - The refresh token is also expired or invalid
+/// - User must login again
+/// 
+/// Different from [UnauthorizedException] which might be recoverable
+/// through token refresh.
+class SessionExpiredException extends UnauthorizedException {
+  SessionExpiredException(
+    super.message, {
+    super.statusCode = 401,
+    super.originalError,
+    super.endpoint,
+    super.method,
+    super.details,
+  });
+  
+  /// Create with default message
+  factory SessionExpiredException.defaultMessage({
+    String? endpoint,
+    String? method,
+  }) {
+    return SessionExpiredException(
+      'Your session has expired. Please login again.',
+      endpoint: endpoint,
+      method: method,
+    );
+  }
+}
+
 /// 403 - Forbidden (no permission or tenant suspended)
 class ForbiddenException extends BridgeCoreException {
   ForbiddenException(

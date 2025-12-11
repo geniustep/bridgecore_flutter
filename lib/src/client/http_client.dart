@@ -65,8 +65,12 @@ class BridgeCoreHttpClient {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
-          // Add token to requests
-          final token = await tokenManager.getAccessToken();
+          // Use getValidAccessToken() for smart token management:
+          // - Returns cached token if still valid
+          // - Automatically refreshes if expired but refresh token is valid
+          // - Returns null if no valid session exists
+          // This ensures all requests go through a "smart gateway" for tokens
+          final token = await tokenManager.getValidAccessToken();
           if (token != null && token.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $token';
           }
@@ -95,34 +99,48 @@ class BridgeCoreHttpClient {
                 'Request error: ${error.message}', null, error);
           }
 
-          // Handle 401 as fallback (in case server revoked token)
-          // This should rarely happen since we proactively refresh
+          // Handle 401 with smart retry logic
+          // This should rarely happen since getValidAccessToken() proactively refreshes
           if (error.response?.statusCode == 401) {
             final isRefreshEndpoint =
                 error.requestOptions.path == BridgeCoreEndpoints.refresh;
 
-            if (!isRefreshEndpoint) {
+            if (isRefreshEndpoint) {
+              // 401 from refresh endpoint = session is completely dead
               BridgeCoreLogger.warning(
-                  'Got 401 despite proactive refresh - token may have been revoked');
-
-              // Try force refresh once
-              try {
-                final newToken = await tokenManager.forceRefresh();
-
-                if (newToken != null) {
-                  // Retry original request with new token
-                  final options = error.requestOptions;
-                  options.headers['Authorization'] = 'Bearer $newToken';
-
-                  final response = await _dio.fetch(options);
-                  return handler.resolve(response);
-                }
-              } catch (e) {
-                BridgeCoreLogger.error('Force refresh failed', null, e);
-              }
+                  '401 from refresh endpoint - session expired completely');
+              await tokenManager.clearTokens();
+              // Mark this as a session expiry, not just unauthorized
+              error.requestOptions.extra['sessionExpired'] = true;
+              return handler.next(error);
             }
 
-            // Clear tokens if refresh failed
+            // 401 from regular endpoint - try force refresh once
+            BridgeCoreLogger.warning(
+                'Got 401 despite proactive refresh - token may have been revoked');
+
+            try {
+              final newToken = await tokenManager.forceRefresh();
+
+              if (newToken != null) {
+                // Retry original request with new token
+                final options = error.requestOptions;
+                options.headers['Authorization'] = 'Bearer $newToken';
+
+                final response = await _dio.fetch(options);
+                return handler.resolve(response);
+              } else {
+                // forceRefresh returned null = refresh token also expired
+                BridgeCoreLogger.warning(
+                    'Force refresh returned null - session expired');
+                error.requestOptions.extra['sessionExpired'] = true;
+              }
+            } catch (e) {
+              BridgeCoreLogger.error('Force refresh failed', null, e);
+              error.requestOptions.extra['sessionExpired'] = true;
+            }
+
+            // Clear tokens since we couldn't recover
             await tokenManager.clearTokens();
           }
 
@@ -249,6 +267,18 @@ class BridgeCoreHttpClient {
 
     switch (statusCode) {
       case 401:
+        // Check if this is a session expiry (refresh also failed)
+        final isSessionExpired = requestOptions.extra['sessionExpired'] == true;
+        if (isSessionExpired) {
+          throw SessionExpiredException(
+            message,
+            statusCode: statusCode,
+            endpoint: requestOptions.path,
+            method: requestOptions.method,
+            details: details,
+            originalError: error,
+          );
+        }
         throw UnauthorizedException(
           message,
           statusCode: statusCode,

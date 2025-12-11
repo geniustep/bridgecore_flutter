@@ -1,6 +1,18 @@
-# BridgeCore Flutter SDK v3.1.0
+# BridgeCore Flutter SDK v3.2.0
 
 Official Flutter SDK for BridgeCore API - Complete Odoo 18 integration with smart token management, full sync, triggers, and notifications support.
+
+## 🎉 What's New in v3.2.0
+
+- ✅ **Smart Token Gateway** - All requests use `getValidAccessToken()` for automatic refresh
+- ✅ **SessionExpiredException** - Distinguish between recoverable 401 and session death
+- ✅ **Enhanced 401 Handling** - Smart retry with force refresh before giving up
+- ✅ **Offline-First Architecture** - Work with expired tokens when offline
+- ✅ **Token State Machine** - Clear states: `authenticated`, `needsRefresh`, `sessionExpired`, `unauthenticated`
+
+### Breaking Changes
+- HTTP Client now uses `getValidAccessToken()` instead of `getAccessToken()` for all requests
+- 401 errors now throw `SessionExpiredException` when refresh also fails
 
 ## 🎉 What's New in v3.1.1
 
@@ -176,6 +188,97 @@ final records = await BridgeCore.instance.odoo.searchRead(
 // If you need to force refresh
 await BridgeCore.instance.auth.refreshToken();
 ```
+
+## 🔐 Smart Session Management (v3.2.0)
+
+### Token State Machine
+
+The SDK uses a state machine for session management:
+
+```
+┌─────────────────┐     Login      ┌──────────────────┐
+│  unauthenticated│ ────────────▶  │   authenticated  │
+└─────────────────┘                └──────────────────┘
+                                           │
+                                           │ Access Token Expires
+                                           ▼
+┌─────────────────┐   Refresh Fails ┌──────────────────┐
+│  sessionExpired │ ◀────────────── │   needsRefresh   │
+└─────────────────┘                 └──────────────────┘
+        │                                  │
+        │                                  │ Auto Refresh
+        │                                  ▼
+        │                          ┌──────────────────┐
+        └─────── Login ──────────▶ │   authenticated  │
+                                   └──────────────────┘
+```
+
+### Offline-First Architecture
+
+```dart
+// In your Splash Screen
+final authState = await BridgeCore.instance.auth.authState;
+final isOnline = await checkNetworkConnectivity();
+
+switch (authState) {
+  case TokenAuthState.authenticated:
+    // ✅ Go to Home
+    navigateToHome();
+    break;
+    
+  case TokenAuthState.needsRefresh:
+    if (isOnline) {
+      // Try refresh, then go to Home
+      try {
+        await BridgeCore.instance.auth.refreshToken();
+        navigateToHome();
+      } catch (e) {
+        navigateToLogin();
+      }
+    } else {
+      // 📴 Offline mode - allow access with cached data
+      navigateToHome(offlineMode: true);
+    }
+    break;
+    
+  case TokenAuthState.sessionExpired:
+  case TokenAuthState.unauthenticated:
+    navigateToLogin();
+    break;
+}
+```
+
+### Handling 401 Errors
+
+The SDK handles 401 errors intelligently:
+
+1. **From regular endpoints**: Tries `forceRefresh()` once, retries the request
+2. **From refresh endpoint**: Throws `SessionExpiredException` - user must login again
+
+```dart
+try {
+  final orders = await BridgeCore.instance.odoo.searchRead(
+    model: 'sale.order',
+    domain: [],
+    fields: ['name'],
+  );
+} on SessionExpiredException catch (e) {
+  // Session is completely dead - redirect to login
+  print('Session expired: ${e.message}');
+  navigateToLogin();
+} on UnauthorizedException catch (e) {
+  // This shouldn't happen often with smart token management
+  print('Unauthorized: ${e.message}');
+}
+```
+
+### Exception Types for Auth
+
+| Exception | When Thrown | Action |
+|-----------|-------------|--------|
+| `UnauthorizedException` | 401 from API (recoverable) | SDK auto-retries with refresh |
+| `SessionExpiredException` | 401 after refresh failed | Redirect to login |
+| `MissingOdooCredentialsException` | Token missing tenant claims | Logout and re-login |
 
 ### 5. Use Sync Service
 

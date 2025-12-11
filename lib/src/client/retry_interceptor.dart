@@ -7,6 +7,9 @@ import '../core/logger.dart';
 /// - HTTP status codes (5xx server errors)
 /// - Connection errors
 /// - Timeout errors
+/// 
+/// NOTE: Retries are limited to avoid overwhelming the server during outages.
+/// For 429 (rate limit) errors, we don't retry to avoid making things worse.
 class RetryInterceptor extends Interceptor {
   final Dio dio;
   final int maxRetries;
@@ -15,9 +18,9 @@ class RetryInterceptor extends Interceptor {
 
   RetryInterceptor({
     required this.dio,
-    this.maxRetries = 3,
-    this.retryDelay = const Duration(seconds: 2),
-    this.retryableStatusCodes = const [500, 502, 503, 504],
+    this.maxRetries = 2, // Reduced from 3 to avoid overwhelming server
+    this.retryDelay = const Duration(seconds: 3), // Increased from 2s
+    this.retryableStatusCodes = const [503, 504], // Removed 500, 502 - these often indicate server overload
   });
 
   @override
@@ -64,7 +67,18 @@ class RetryInterceptor extends Interceptor {
 
   /// Check if error should be retried
   bool _shouldRetry(DioException err) {
-    // Retry on connection errors
+    // NEVER retry on rate limit errors - this will make things worse
+    if (err.response?.statusCode == 429) {
+      return false;
+    }
+    
+    // Don't retry on 500/502 - these often indicate server overload
+    // Retrying will just make the problem worse
+    if (err.response?.statusCode == 500 || err.response?.statusCode == 502) {
+      return false;
+    }
+
+    // Retry on connection errors (network issues, not server issues)
     if (err.type == DioExceptionType.connectionError) {
       return true;
     }
@@ -76,7 +90,7 @@ class RetryInterceptor extends Interceptor {
       return true;
     }
 
-    // Retry on specific status codes
+    // Retry on specific status codes (503, 504 only - temporary unavailability)
     if (err.response != null &&
         retryableStatusCodes.contains(err.response!.statusCode)) {
       return true;

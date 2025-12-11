@@ -159,6 +159,7 @@ class OdooService {
   }
 
   /// Direct search read (without fallback)
+  /// Uses call_kw endpoint to avoid rate limiting issues with search_read endpoint
   Future<List<Map<String, dynamic>>> _directSearchRead({
     required String model,
     List<dynamic> domain = const [],
@@ -167,22 +168,43 @@ class OdooService {
     int offset = 0,
     String? order,
   }) async {
-    final response = await httpClient.post(
-      BridgeCoreEndpoints.searchRead,
-      {
-        'model': model,
+    try {
+      // Use call_kw endpoint instead of search_read to avoid rate limiting
+      final kwargs = <String, dynamic>{
         'domain': domain,
         if (fields != null) 'fields': fields,
         'limit': limit,
         'offset': offset,
         if (order != null) 'order': order,
-      },
-    );
+      };
 
-    // Some API responses use "records" instead of "result"
-    final list =
-        (response['records'] ?? response['result']) as List<dynamic>? ?? [];
-    return list.cast<Map<String, dynamic>>();
+      final response = await httpClient.post(
+        BridgeCoreEndpoints.callKw,
+        {
+          'model': model,
+          'method': 'search_read',
+          'args': [],
+          'kwargs': kwargs,
+        },
+      );
+
+      // call_kw returns result directly
+      final result = response['result'];
+      if (result is List) {
+        return result.cast<Map<String, dynamic>>();
+      }
+      // Fallback for different response structures
+      final list =
+          (response['records'] ?? response['result']) as List<dynamic>? ?? [];
+      return list.cast<Map<String, dynamic>>();
+    } catch (e) {
+      // Log which model failed for debugging
+      print('❌ searchRead FAILED for model: $model');
+      print('   Domain: $domain');
+      print(
+          '   Fields: ${fields?.take(5).toList()}${(fields?.length ?? 0) > 5 ? "... (${fields!.length} total)" : ""}');
+      rethrow;
+    }
   }
 
   /// Read records by IDs
@@ -200,12 +222,18 @@ class OdooService {
     required List<int> ids,
     List<String>? fields,
   }) async {
+    // Use call_kw endpoint to avoid rate limiting
+    final kwargs = <String, dynamic>{
+      if (fields != null) 'fields': fields,
+    };
+
     final response = await httpClient.post(
-      BridgeCoreEndpoints.read,
+      BridgeCoreEndpoints.callKw,
       {
         'model': model,
-        'ids': ids,
-        'fields': fields,
+        'method': 'read',
+        'args': [ids],
+        'kwargs': kwargs,
       },
     );
 
@@ -232,11 +260,14 @@ class OdooService {
     required String model,
     required Map<String, dynamic> values,
   }) async {
+    // Use call_kw endpoint to avoid rate limiting
     final response = await httpClient.post(
-      BridgeCoreEndpoints.create,
+      BridgeCoreEndpoints.callKw,
       {
         'model': model,
-        'values': values,
+        'method': 'create',
+        'args': [values],
+        'kwargs': {},
       },
     );
 
@@ -263,12 +294,14 @@ class OdooService {
     required List<int> ids,
     required Map<String, dynamic> values,
   }) async {
+    // Use call_kw endpoint to avoid rate limiting
     final response = await httpClient.post(
-      BridgeCoreEndpoints.write,
+      BridgeCoreEndpoints.callKw,
       {
         'model': model,
-        'ids': ids,
-        'values': values,
+        'method': 'write',
+        'args': [ids, values],
+        'kwargs': {},
       },
     );
 
@@ -290,11 +323,14 @@ class OdooService {
     required String model,
     required List<int> ids,
   }) async {
+    // Use call_kw endpoint to avoid rate limiting
     final response = await httpClient.post(
-      BridgeCoreEndpoints.unlink,
+      BridgeCoreEndpoints.callKw,
       {
         'model': model,
-        'ids': ids,
+        'method': 'unlink',
+        'args': [ids],
+        'kwargs': {},
       },
     );
 
@@ -318,14 +354,20 @@ class OdooService {
     int offset = 0,
     String? order,
   }) async {
+    // Use call_kw endpoint to avoid rate limiting
+    final kwargs = <String, dynamic>{
+      if (limit != null) 'limit': limit,
+      'offset': offset,
+      if (order != null) 'order': order,
+    };
+
     final response = await httpClient.post(
-      BridgeCoreEndpoints.search,
+      BridgeCoreEndpoints.callKw,
       {
         'model': model,
-        'domain': domain,
-        if (limit != null) 'limit': limit,
-        'offset': offset,
-        if (order != null) 'order': order,
+        'method': 'search',
+        'args': [domain],
+        'kwargs': kwargs,
       },
     );
 
@@ -347,11 +389,14 @@ class OdooService {
     required String model,
     List<dynamic> domain = const [],
   }) async {
+    // Use call_kw endpoint to avoid rate limiting
     final response = await httpClient.post(
-      BridgeCoreEndpoints.searchCount,
+      BridgeCoreEndpoints.callKw,
       {
         'model': model,
-        'domain': domain,
+        'method': 'search_count',
+        'args': [domain],
+        'kwargs': {},
       },
     );
 
@@ -371,11 +416,18 @@ class OdooService {
     required String model,
     List<String>? fields,
   }) async {
+    // Use call_kw endpoint to avoid rate limiting
+    final kwargs = <String, dynamic>{
+      if (fields != null) 'allfields': fields,
+    };
+
     final response = await httpClient.post(
-      BridgeCoreEndpoints.fieldsGet,
+      BridgeCoreEndpoints.callKw,
       {
         'model': model,
-        if (fields != null) 'fields': fields,
+        'method': 'fields_get',
+        'args': [],
+        'kwargs': kwargs,
       },
     );
 
@@ -400,13 +452,17 @@ class OdooService {
     List<dynamic> domain = const [],
     int limit = 100,
   }) async {
+    // Use call_kw endpoint to avoid rate limiting
     final response = await httpClient.post(
-      BridgeCoreEndpoints.nameSearch,
+      BridgeCoreEndpoints.callKw,
       {
         'model': model,
-        'name': name,
-        'domain': domain,
-        'limit': limit,
+        'method': 'name_search',
+        'args': [name],
+        'kwargs': {
+          'args': domain,
+          'limit': limit,
+        },
       },
     );
 
@@ -429,11 +485,14 @@ class OdooService {
     required String model,
     required List<int> ids,
   }) async {
+    // Use call_kw endpoint to avoid rate limiting
     final response = await httpClient.post(
-      BridgeCoreEndpoints.nameGet,
+      BridgeCoreEndpoints.callKw,
       {
         'model': model,
-        'ids': ids,
+        'method': 'name_get',
+        'args': [ids],
+        'kwargs': {},
       },
     );
 
@@ -638,7 +697,8 @@ class OdooService {
   ///   {'method': 'search_count', 'model': 'product.product', 'domain': []},
   /// ]);
   /// ```
-  Future<List<dynamic>> executeBatch(List<Map<String, dynamic>> operations) async {
+  Future<List<dynamic>> executeBatch(
+      List<Map<String, dynamic>> operations) async {
     final response = await httpClient.post(
       BridgeCoreEndpoints.batchExecute,
       {
