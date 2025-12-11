@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import '../auth/token_manager.dart';
 import '../core/exceptions.dart';
@@ -23,6 +24,8 @@ class BridgeCoreHttpClient {
   final CacheManager _cache = CacheManager();
   final BridgeCoreMetrics _metrics = BridgeCoreMetrics();
   bool _cacheEnabled = false;
+
+  static const String _extraIncludeAuthKey = 'includeAuth';
 
   BridgeCoreHttpClient({
     required this.baseUrl,
@@ -65,14 +68,20 @@ class BridgeCoreHttpClient {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
+          final includeAuth =
+              (options.extra[_extraIncludeAuthKey] as bool?) ?? true;
+
+          // Add token to requests (unless explicitly disabled).
           // Use getValidAccessToken() for smart token management:
           // - Returns cached token if still valid
           // - Automatically refreshes if expired but refresh token is valid
           // - Returns null if no valid session exists
-          // This ensures all requests go through a "smart gateway" for tokens
-          final token = await tokenManager.getValidAccessToken();
-          if (token != null && token.isNotEmpty) {
-            options.headers['Authorization'] = 'Bearer $token';
+          // This ensures all requests go through a "smart gateway" for tokens.
+          if (includeAuth) {
+            final token = await tokenManager.getValidAccessToken();
+            if (token != null && token.isNotEmpty) {
+              options.headers['Authorization'] = 'Bearer $token';
+            }
           }
 
           if (debugMode) {
@@ -396,6 +405,39 @@ class BridgeCoreHttpClient {
     }
   }
 
+  Future<String> _getAuthIdentity({required bool includeAuth}) async {
+    if (!includeAuth) return 'noauth';
+
+    final token = await tokenManager.getAccessToken();
+    if (token == null || token.isEmpty) return 'anon';
+
+    final payload = tokenManager.decodeTokenPayload(token);
+    if (payload == null) return 'unknown';
+
+    final tenantId = payload['tenant_id'];
+    final sub = payload['sub'];
+    final userType = payload['user_type'];
+
+    // Keep this short + stable; do NOT include full token
+    return 't:$tenantId|u:$sub|type:$userType';
+  }
+
+  String _encodeStableJson(Object? value) {
+    try {
+      return jsonEncode(value);
+    } catch (_) {
+      // Fallback (should be rare)
+      return value.toString();
+    }
+  }
+
+  String _sortedQueryString(Map<String, String>? queryParams) {
+    if (queryParams == null || queryParams.isEmpty) return '';
+    final entries = queryParams.entries.toList()
+      ..sort((a, b) => a.key.compareTo(b.key));
+    return entries.map((e) => '${e.key}=${e.value}').join('&');
+  }
+
   Future<Map<String, dynamic>> post(
     String path,
     Map<String, dynamic> body, {
@@ -404,8 +446,9 @@ class BridgeCoreHttpClient {
     Duration? cacheTTL,
   }) async {
     // Check cache for GET-like operations (if implemented)
-    final cacheKey =
-        (useCache && _cacheEnabled) ? 'POST_${path}_${body.toString()}' : null;
+    final cacheKey = (useCache && _cacheEnabled)
+        ? 'POST_${path}_${await _getAuthIdentity(includeAuth: includeAuth)}_${_encodeStableJson(body)}'
+        : null;
     if (cacheKey != null) {
       final cached = _cache.get<Map<String, dynamic>>(cacheKey);
       if (cached != null) {
@@ -419,7 +462,11 @@ class BridgeCoreHttpClient {
     BridgeCoreLogger.debug('POST $path', body);
 
     try {
-      final response = await _dio.post(path, data: body);
+      final response = await _dio.post(
+        path,
+        data: body,
+        options: Options(extra: {_extraIncludeAuthKey: includeAuth}),
+      );
       final data = response.data as Map<String, dynamic>;
 
       // Record success
@@ -454,7 +501,7 @@ class BridgeCoreHttpClient {
   }) async {
     // Check cache
     final cacheKey = (useCache && _cacheEnabled)
-        ? 'GET_${path}_${queryParams?.toString()}'
+        ? 'GET_${path}_${await _getAuthIdentity(includeAuth: includeAuth)}_${_sortedQueryString(queryParams)}'
         : null;
     if (cacheKey != null) {
       final cached = _cache.get<Map<String, dynamic>>(cacheKey);
@@ -469,7 +516,11 @@ class BridgeCoreHttpClient {
     BridgeCoreLogger.debug('GET $path', queryParams);
 
     try {
-      final response = await _dio.get(path, queryParameters: queryParams);
+      final response = await _dio.get(
+        path,
+        queryParameters: queryParams,
+        options: Options(extra: {_extraIncludeAuthKey: includeAuth}),
+      );
       final data = response.data as Map<String, dynamic>;
 
       // Record success
@@ -501,7 +552,11 @@ class BridgeCoreHttpClient {
     bool includeAuth = true,
   }) async {
     try {
-      final response = await _dio.put(path, data: body);
+      final response = await _dio.put(
+        path,
+        data: body,
+        options: Options(extra: {_extraIncludeAuthKey: includeAuth}),
+      );
       return response.data as Map<String, dynamic>;
     } on DioException catch (e) {
       _handleError(e);
@@ -515,7 +570,10 @@ class BridgeCoreHttpClient {
     bool includeAuth = true,
   }) async {
     try {
-      final response = await _dio.delete(path);
+      final response = await _dio.delete(
+        path,
+        options: Options(extra: {_extraIncludeAuthKey: includeAuth}),
+      );
       if (response.data == null || response.data == '') {
         return {};
       }

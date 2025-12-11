@@ -75,6 +75,11 @@ class AuthService {
     required String password,
     OdooFieldsCheck? odooFieldsCheck,
   }) async {
+    // If the app is switching accounts without an explicit logout,
+    // ensure we don't reuse any cached user-scoped state.
+    clearMeCache();
+    httpClient.clearCache();
+
     final request = LoginRequest(
       email: email,
       password: password,
@@ -95,6 +100,10 @@ class AuthService {
       refreshToken: session.refreshToken,
       expiresIn: session.expiresIn,
     );
+
+    // New identity => drop any stale caches
+    clearMeCache();
+    httpClient.clearCache();
 
     return session;
   }
@@ -209,6 +218,7 @@ class AuthService {
     } finally {
       await tokenManager.clearTokens();
       clearMeCache();
+      httpClient.clearCache();
     }
   }
 
