@@ -18,7 +18,7 @@
 
 ```yaml
 dependencies:
-  bridgecore_flutter: ^3.0.0
+  bridgecore_flutter: ^3.1.0
 ```
 
 ---

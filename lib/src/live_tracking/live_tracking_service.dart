@@ -185,7 +185,8 @@ class LiveTrackingService {
       );
     } catch (e) {
       BridgeCoreLogger.error('WebSocket connection failed: $e');
-      _eventBus.emit(BridgeCoreEventTypes.websocketError, {'error': e.toString()});
+      _eventBus
+          .emit(BridgeCoreEventTypes.websocketError, {'error': e.toString()});
       _scheduleReconnect();
       rethrow;
     }
@@ -257,8 +258,8 @@ class LiveTrackingService {
       final location = await completer.future.timeout(timeout);
       return location;
     } on TimeoutException {
-      BridgeCoreLogger.warn(
-          'Location request timed out for driver $driverId');
+      BridgeCoreLogger.warning(
+           'Location request timed out for driver $driverId');
       _pendingLocationRequests.remove(requestId);
       return null;
     }
@@ -318,7 +319,7 @@ class LiveTrackingService {
 
   void _send(Map<String, dynamic> message) {
     if (!_isConnected || _channel == null) {
-      BridgeCoreLogger.warn('Cannot send message: WebSocket not connected');
+      BridgeCoreLogger.warning('Cannot send message: WebSocket not connected');
       return;
     }
 
@@ -416,7 +417,8 @@ class LiveTrackingService {
 
   void _handleError(dynamic error) {
     BridgeCoreLogger.error('WebSocket error: $error');
-    _eventBus.emit(BridgeCoreEventTypes.websocketError, {'error': error.toString()});
+    _eventBus
+        .emit(BridgeCoreEventTypes.websocketError, {'error': error.toString()});
     _isConnected = false;
     _connectionStatusController.add(false);
     _scheduleReconnect();
@@ -432,8 +434,7 @@ class LiveTrackingService {
 
   void _scheduleReconnect() {
     if (_reconnectAttempts >= _maxReconnectAttempts) {
-      BridgeCoreLogger.error(
-          'Max reconnect attempts reached. Giving up.');
+      BridgeCoreLogger.error('Max reconnect attempts reached. Giving up.');
       return;
     }
 

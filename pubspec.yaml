@@ -1,6 +1,6 @@
 name: bridgecore_flutter
 description: "Official Flutter SDK for BridgeCore API - Complete Odoo integration with 26 operations"
-version: 3.0.0
+version: 3.1.0
 homepage: https://github.com/geniustep/bridgecore_flutter
 
 environment:
