@@ -133,11 +133,17 @@ class LiveTrackingService {
 
     _userId = userId;
 
-    // Build WebSocket URL
-    final wsUrl = _baseUrl
-        .replaceFirst('https://', 'wss://')
-        .replaceFirst('http://', 'ws://');
-    final uri = Uri.parse('$wsUrl/api/v1/ws/$userId');
+    // Build WebSocket URL properly
+    final baseUri = Uri.parse(_baseUrl);
+    final wsScheme = baseUri.scheme == 'https' ? 'wss' : 'ws';
+    
+    // Build WebSocket URI maintaining the original port (if any)
+    final uri = Uri(
+      scheme: wsScheme,
+      host: baseUri.host,
+      port: baseUri.hasPort ? baseUri.port : null,
+      path: '/api/v1/ws/$userId',
+    );
 
     BridgeCoreLogger.info('Connecting to WebSocket: $uri');
 
