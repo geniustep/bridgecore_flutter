@@ -135,7 +135,7 @@ class LiveTrackingService {
 
     // Build WebSocket URL properly
     final baseUri = Uri.parse(_baseUrl);
-    
+
     // Convert HTTP(S) to WS(S), or keep existing WS scheme
     final String wsScheme;
     switch (baseUri.scheme) {
@@ -149,7 +149,7 @@ class LiveTrackingService {
         wsScheme = 'ws';
         break;
     }
-    
+
     // Build WebSocket URI maintaining the original port (if any)
     final uri = Uri(
       scheme: wsScheme,
@@ -259,7 +259,7 @@ class LiveTrackingService {
       return location;
     } on TimeoutException {
       BridgeCoreLogger.warning(
-           'Location request timed out for driver $driverId');
+          'Location request timed out for driver $driverId');
       _pendingLocationRequests.remove(requestId);
       return null;
     }
