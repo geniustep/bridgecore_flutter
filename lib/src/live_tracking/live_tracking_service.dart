@@ -135,7 +135,20 @@ class LiveTrackingService {
 
     // Build WebSocket URL properly
     final baseUri = Uri.parse(_baseUrl);
-    final wsScheme = baseUri.scheme == 'https' ? 'wss' : 'ws';
+    
+    // Convert HTTP(S) to WS(S), or keep existing WS scheme
+    final String wsScheme;
+    switch (baseUri.scheme) {
+      case 'https':
+      case 'wss':
+        wsScheme = 'wss';
+        break;
+      case 'http':
+      case 'ws':
+      default:
+        wsScheme = 'ws';
+        break;
+    }
     
     // Build WebSocket URI maintaining the original port (if any)
     final uri = Uri(
