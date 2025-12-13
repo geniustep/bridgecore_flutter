@@ -87,3 +87,9 @@ export 'src/odoo_sync/odoo_sync_service.dart';
 export 'src/events/event_bus.dart';
 export 'src/events/event_types.dart';
 export 'src/events/bridgecore_event.dart';
+
+// Live Tracking (ShuttleBee)
+export 'src/live_tracking/live_tracking_service.dart';
+export 'src/live_tracking/models/driver_location.dart';
+export 'src/live_tracking/models/vehicle_position.dart';
+export 'src/live_tracking/models/trip_update.dart';
