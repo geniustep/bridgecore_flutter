@@ -44,11 +44,11 @@ import 'models/trip_update.dart';
 /// await tracking.connect(userId: driverId);
 ///
 /// // Listen for location requests from dispatcher
-/// tracking.locationRequestStream.listen((requestId, requesterId) async {
+/// tracking.locationRequestStream.listen((request) async {
 ///   final position = await getCurrentGpsPosition();
 ///   tracking.sendLocationResponse(
-///     requestId: requestId,
-///     requesterId: requesterId,
+///     requestId: request.requestId,
+///     requesterId: request.requesterId,
 ///     latitude: position.latitude,
 ///     longitude: position.longitude,
 ///   );
