@@ -453,6 +453,11 @@ class BridgeCoreEndpoints {
   static const String conversationDirectMessages =
       '/api/v1/conversations/direct-messages';
 
+  /// Get or create a direct message channel with partners
+  /// POST /api/v1/conversations/channels/get-or-create-dm
+  static const String conversationGetOrCreateDm =
+      '/api/v1/conversations/channels/get-or-create-dm';
+
   // ════════════════════════════════════════════════════════════
   // Utility Methods
   // ════════════════════════════════════════════════════════════
@@ -575,6 +580,7 @@ class BridgeCoreEndpoints {
       conversationChannels,
       conversationSendMessage,
       conversationDirectMessages,
+      conversationGetOrCreateDm,
     ];
   }
 }

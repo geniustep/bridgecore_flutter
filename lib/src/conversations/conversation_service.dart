@@ -210,4 +210,31 @@ class ConversationService {
 
     return SendMessageResponse.fromJson(response);
   }
+
+  /// Get or create a direct message channel with specified partners
+  ///
+  /// ⚠️ Important: Uses Odoo's channel_get method (same as Discuss app)
+  ///
+  /// This is equivalent to Odoo's:
+  /// - discuss.channel.channel_get(partners_to=[196], force_open=true)
+  ///
+  /// Example:
+  /// ```dart
+  /// final channel = await conversations.getOrCreateDmChannel([196]);
+  /// final channelId = channel['discuss.channel'][0]['id'];
+  /// ```
+  Future<Map<String, dynamic>> getOrCreateDmChannel(
+    List<int> partnerIds,
+  ) async {
+    BridgeCoreLogger.info('Getting or creating DM channel with partners: $partnerIds');
+
+    final response = await httpClient.post(
+      BridgeCoreEndpoints.conversationGetOrCreateDm,
+      {
+        'partner_ids': partnerIds,
+      },
+    );
+
+    return response as Map<String, dynamic>;
+  }
 }
