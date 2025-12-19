@@ -93,3 +93,10 @@ export 'src/live_tracking/live_tracking_service.dart';
 export 'src/live_tracking/models/driver_location.dart';
 export 'src/live_tracking/models/vehicle_position.dart';
 export 'src/live_tracking/models/trip_update.dart';
+
+// Conversations
+export 'src/conversations/conversation_service.dart';
+export 'src/conversations/conversation_websocket_service.dart';
+export 'src/conversations/models/mail_message.dart';
+export 'src/conversations/models/mail_channel.dart';
+export 'src/conversations/models/conversation_responses.dart';

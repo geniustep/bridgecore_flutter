@@ -59,11 +59,11 @@ class ConversationWebSocketService {
   Stream<MailMessage> get messageStream => _messageController.stream;
 
   /// Stream of channel updates
-  Stream<MailChannel> get channelUpdateStream => _channelUpdateController.stream;
+  Stream<MailChannel> get channelUpdateStream =>
+      _channelUpdateController.stream;
 
   /// Stream of connection status changes
-  Stream<bool> get connectionStatusStream =>
-      _connectionStatusController.stream;
+  Stream<bool> get connectionStatusStream => _connectionStatusController.stream;
 
   /// Whether WebSocket is currently connected
   bool get isConnected => _isConnected;
@@ -71,9 +71,8 @@ class ConversationWebSocketService {
   /// List of subscribed channel IDs
   List<int> get subscribedChannels => _subscribedChannels.toList();
 
-  ConversationWebSocketService({required String baseUrl}) {
+  ConversationWebSocketService({required String baseUrl}) : _baseUrl = baseUrl {
     // Store base URL - will convert to WS URL in connect()
-    _baseUrl = baseUrl;
   }
 
   /// Connect to conversation WebSocket
@@ -94,7 +93,7 @@ class ConversationWebSocketService {
     try {
       // Build WebSocket URL properly (like LiveTrackingService)
       final baseUri = Uri.parse(_baseUrl);
-      
+
       // Convert HTTP(S) to WS(S)
       final String wsScheme;
       switch (baseUri.scheme) {
@@ -108,19 +107,20 @@ class ConversationWebSocketService {
           wsScheme = 'ws';
           break;
       }
-      
+
       // Build WebSocket URI
       final portPart = baseUri.hasPort ? ':${baseUri.port}' : '';
-      final wsUrl = '$wsScheme://${baseUri.host}$portPart/ws/conversations?token=$token';
+      final wsUrl =
+          '$wsScheme://${baseUri.host}$portPart/ws/conversations?token=$token';
       final uri = Uri.parse(wsUrl);
-      
+
       BridgeCoreLogger.info('Connecting to conversation WebSocket: $uri');
 
       _channel = WebSocketChannel.connect(uri);
-      
+
       // Wait for connection (similar to LiveTrackingService)
       await _channel!.ready;
-      
+
       _isConnected = true;
       _reconnectAttempts = 0;
       _lastToken = token;
@@ -214,7 +214,8 @@ class ConversationWebSocketService {
       _subscribedChannels.remove(channelId);
       BridgeCoreLogger.info('Unsubscribed from channel $channelId');
     } catch (e) {
-      BridgeCoreLogger.error('Failed to unsubscribe from channel $channelId: $e');
+      BridgeCoreLogger.error(
+          'Failed to unsubscribe from channel $channelId: $e');
     }
   }
 
@@ -324,7 +325,7 @@ class ConversationWebSocketService {
     BridgeCoreLogger.error('WebSocket error: $error');
     _isConnected = false;
     _connectionStatusController.add(false);
-    
+
     // Schedule reconnect if we have a token
     if (_lastToken != null) {
       _scheduleReconnect(_lastToken!);
@@ -340,7 +341,7 @@ class ConversationWebSocketService {
       'type': 'conversation_ws_disconnected',
       'status': 'disconnected',
     });
-    
+
     // Schedule reconnect if we have a token
     if (_lastToken != null) {
       _scheduleReconnect(_lastToken!);
