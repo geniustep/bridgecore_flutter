@@ -426,6 +426,34 @@ class BridgeCoreEndpoints {
   static const String odooSyncStats = '/api/v1/odoo-sync/stats';
 
   // ════════════════════════════════════════════════════════════
+  // Conversations (Odoo Messages & Channels)
+  // ════════════════════════════════════════════════════════════
+
+  /// Get all channels for current user
+  /// GET /api/v1/conversations/channels
+  static const String conversationChannels = '/api/v1/conversations/channels';
+
+  /// Get messages in a channel
+  /// GET /api/v1/conversations/channels/{channel_id}/messages
+  static String conversationChannelMessages(int channelId) =>
+      '/api/v1/conversations/channels/$channelId/messages';
+
+  /// Get chatter messages for a record
+  /// GET /api/v1/conversations/chatter/{model}/{record_id}
+  static String conversationChatter(String model, int recordId) =>
+      '/api/v1/conversations/chatter/$model/$recordId';
+
+  /// Send a message
+  /// POST /api/v1/conversations/messages/send
+  static const String conversationSendMessage =
+      '/api/v1/conversations/messages/send';
+
+  /// Get direct message channels
+  /// GET /api/v1/conversations/direct-messages
+  static const String conversationDirectMessages =
+      '/api/v1/conversations/direct-messages';
+
+  // ════════════════════════════════════════════════════════════
   // Utility Methods
   // ════════════════════════════════════════════════════════════
 
@@ -543,6 +571,10 @@ class BridgeCoreEndpoints {
       odooSyncSmartPull,
       odooSyncHealth,
       odooSyncStats,
+      // Conversations
+      conversationChannels,
+      conversationSendMessage,
+      conversationDirectMessages,
     ];
   }
 }

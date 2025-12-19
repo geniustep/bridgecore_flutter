@@ -1,6 +1,14 @@
-# BridgeCore Flutter SDK v3.2.0
+# BridgeCore Flutter SDK v3.3.0
 
-Official Flutter SDK for BridgeCore API - Complete Odoo 18 integration with smart token management, full sync, triggers, and notifications support.
+Official Flutter SDK for BridgeCore API - Complete Odoo 18 integration with smart token management, full sync, triggers, notifications, and **Odoo Conversations support**.
+
+## 🎉 What's New in v3.3.0
+
+- ✅ **Odoo Conversations Support** - Full support for Odoo messaging (Channels, DMs, Chatter)
+- ✅ **Real-time WebSocket** - Live message delivery via WebSocket
+- ✅ **Channel Management** - List channels, send messages, subscribe to updates
+- ✅ **Chatter Integration** - Access messages on any Odoo record
+- ✅ **Security** - JWT-based authentication, automatic partner_id from session
 
 ## 🎉 What's New in v3.2.0
 
@@ -74,6 +82,14 @@ Official Flutter SDK for BridgeCore API - Complete Odoo 18 integration with smar
 - ✅ **Device Registration** - Register devices for push notifications
 - ✅ **Statistics** - Notification counts and stats
 
+### Conversations Features (NEW!)
+- ✅ **Channel Management** - Get all channels, direct messages
+- ✅ **Message History** - Fetch messages from channels or record chatter
+- ✅ **Send Messages** - Send messages to channels or records
+- ✅ **Real-time WebSocket** - Live message delivery via WebSocket
+- ✅ **Channel Subscription** - Subscribe/unsubscribe to channels for real-time updates
+- ✅ **Security** - JWT-based authentication, automatic partner_id from session
+
 ### Odoo 18 Features
 - ✅ **OdooContext Manager** - Global context management
 - ✅ **callKw Method** - Generic RPC caller (execute_kw compatible)
@@ -91,7 +107,7 @@ dependencies:
   bridgecore_flutter:
     git:
       url: https://github.com/geniustep/bridgecore_flutter.git
-      ref: 3.1.0
+      ref: 3.3.0
 ```
 
 ## 🚀 Quick Start
@@ -280,7 +296,80 @@ try {
 | `SessionExpiredException` | 401 after refresh failed | Redirect to login |
 | `MissingOdooCredentialsException` | Token missing tenant claims | Logout and re-login |
 
-### 5. Use Sync Service
+### 5. Use Conversations Service (NEW!)
+
+```dart
+final conversations = BridgeCore.instance.conversations;
+
+// Get all channels
+final channelsResponse = await conversations.getChannels();
+print('Total channels: ${channelsResponse.total}');
+for (final channel in channelsResponse.channels) {
+  print('Channel: ${channel.name}');
+}
+
+// Get channel messages
+final messages = await conversations.getChannelMessages(
+  channelId: 123,
+  limit: 50,
+  offset: 0,
+);
+
+// Send a message to channel
+final result = await conversations.sendMessage(
+  model: 'mail.channel',
+  resId: 123,
+  body: '<p>Hello everyone!</p>',
+);
+
+// Get chatter messages for a record
+final chatter = await conversations.getRecordChatter(
+  model: 'sale.order',
+  recordId: 456,
+  limit: 50,
+);
+
+// Get direct messages
+final dms = await conversations.getDirectMessages();
+```
+
+### 6. Real-time Messaging with WebSocket (NEW!)
+
+```dart
+final ws = BridgeCore.instance.conversationsWebSocket;
+
+// Connect to WebSocket
+final token = await BridgeCore.instance.auth.tokenManager.getValidAccessToken();
+await ws.connect(token: token);
+
+// Subscribe to channel
+await ws.subscribeChannel(channelId: 123);
+
+// Listen for new messages
+ws.messageStream.listen((message) {
+  print('New message: ${message.body}');
+  print('Author: ${message.authorName}');
+  print('Date: ${message.date}');
+});
+
+// Listen for channel updates
+ws.channelUpdateStream.listen((channel) {
+  print('Channel updated: ${channel.name}');
+});
+
+// Check connection status
+ws.connectionStatusStream.listen((isConnected) {
+  print('WebSocket ${isConnected ? "connected" : "disconnected"}');
+});
+
+// Unsubscribe when done
+await ws.unsubscribeChannel(channelId: 123);
+
+// Disconnect
+await ws.disconnect();
+```
+
+### 7. Use Sync Service
 
 ```dart
 final sync = BridgeCore.instance.sync;
@@ -312,7 +401,7 @@ final fullResult = await sync.fullSyncCycle(
 );
 ```
 
-### 6. Use Triggers Service
+### 8. Use Triggers Service
 
 ```dart
 final triggers = BridgeCore.instance.triggers;
@@ -341,7 +430,7 @@ final result = await triggers.execute(
 );
 ```
 
-### 7. Use Notifications Service
+### 9. Use Notifications Service
 
 ```dart
 final notifications = BridgeCore.instance.notifications;
@@ -369,7 +458,7 @@ await notifications.registerDevice(
 );
 ```
 
-### 8. Use Event Bus
+### 10. Use Event Bus
 
 ```dart
 final eventBus = BridgeCoreEventBus.instance;
@@ -607,6 +696,49 @@ TriggerStats stats = await triggers.getStats(triggerId);
 
 // Delete
 bool deleted = await triggers.delete(triggerId);
+```
+
+### Conversations Service (NEW!)
+
+```dart
+final conversations = BridgeCore.instance.conversations;
+
+// Get all channels
+ChannelListResponse channels = await conversations.getChannels();
+
+// Get channel messages
+MessageListResponse messages = await conversations.getChannelMessages(
+  channelId: 123,
+  limit: 50,
+  offset: 0,
+);
+
+// Send message
+SendMessageResponse result = await conversations.sendMessage(
+  model: 'mail.channel',
+  resId: 123,
+  body: '<p>Hello!</p>',
+  partnerIds: [1, 2, 3],  // Optional
+  parentId: 456,  // Optional: reply to message
+);
+
+// Get record chatter
+MessageListResponse chatter = await conversations.getRecordChatter(
+  model: 'sale.order',
+  recordId: 456,
+  limit: 50,
+);
+
+// Get direct messages
+ChannelListResponse dms = await conversations.getDirectMessages();
+
+// WebSocket for real-time
+final ws = BridgeCore.instance.conversationsWebSocket;
+await ws.connect(token: accessToken);
+await ws.subscribeChannel(channelId: 123);
+ws.messageStream.listen((message) {
+  print('New message: ${message.body}');
+});
 ```
 
 ### Notifications Service

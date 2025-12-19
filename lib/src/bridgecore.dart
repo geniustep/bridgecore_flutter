@@ -9,6 +9,8 @@ import 'sync/sync_service.dart';
 import 'odoo_sync/odoo_sync_service.dart';
 import 'events/event_bus.dart';
 import 'live_tracking/live_tracking_service.dart';
+import 'conversations/conversation_service.dart';
+import 'conversations/conversation_websocket_service.dart';
 
 /// Main BridgeCore SDK class
 ///
@@ -41,6 +43,8 @@ class BridgeCore {
   late final OdooSyncService _odooSyncService;
   late final BridgeCoreEventBus _eventBus;
   late final LiveTrackingService _liveTrackingService;
+  late final ConversationService _conversationService;
+  late final ConversationWebSocketService _conversationWebSocketService;
   late final String _baseUrl;
 
   /// Authentication service
@@ -66,6 +70,13 @@ class BridgeCore {
 
   /// Live tracking service for real-time GPS updates (ShuttleBee)
   LiveTrackingService get liveTracking => _liveTrackingService;
+
+  /// Conversation service for Odoo messages and channels
+  ConversationService get conversations => _conversationService;
+
+  /// Conversation WebSocket service for real-time messaging
+  ConversationWebSocketService get conversationsWebSocket =>
+      _conversationWebSocketService;
 
   BridgeCore._internal({
     required String baseUrl,
@@ -105,6 +116,10 @@ class BridgeCore {
     _liveTrackingService = LiveTrackingService(
       baseUrl: baseUrl,
       eventBus: _eventBus,
+    );
+    _conversationService = ConversationService(httpClient: _httpClient);
+    _conversationWebSocketService = ConversationWebSocketService(
+      baseUrl: baseUrl,
     );
   }
 
