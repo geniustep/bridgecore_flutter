@@ -150,13 +150,11 @@ class LiveTrackingService {
         break;
     }
 
-    // Build WebSocket URI maintaining the original port (if any)
-    final uri = Uri(
-      scheme: wsScheme,
-      host: baseUri.host,
-      port: baseUri.hasPort ? baseUri.port : null,
-      path: '/api/v1/ws/$userId',
-    );
+    // Build WebSocket URI properly using string concatenation
+    // to avoid port:0 issue with Uri constructor
+    final portPart = baseUri.hasPort ? ':${baseUri.port}' : '';
+    final wsUrl = '$wsScheme://${baseUri.host}$portPart/api/v1/ws/$userId';
+    final uri = Uri.parse(wsUrl);
 
     BridgeCoreLogger.info('Connecting to WebSocket: $uri');
 

@@ -1,0 +1,17 @@
+# Bridgecore Flutter Package Rules
+
+## Context7 Integration
+- Always use Context7 MCP tools automatically when:
+  - I need code generation or examples
+  - I need library documentation
+  - I need setup steps or API references
+  - I ask about Flutter, Dart, or any third-party packages
+
+## Flutter/Dart Specific
+- Use Context7 to fetch latest Flutter and Dart documentation
+- Check pub.dev packages documentation via Context7
+- Verify API compatibility and best practices
+
+## Language
+- Prefer Arabic responses when user writes in Arabic
+- Use English for code comments and documentation
