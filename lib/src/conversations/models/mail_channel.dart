@@ -2,7 +2,7 @@
 class MailChannel {
   final int id;
   final String name;
-  final String channelType; // 'chat' or 'channel'
+  final String channelType; // 'chat', 'channel', or 'group'
   final String public; // 'public', 'private', 'groups'
   final String? description;
   final List<int> membersPartnerIds;
@@ -44,12 +44,19 @@ class MailChannel {
       }
     }
 
+    // Handle description which might be false from Odoo
+    String? description;
+    final descValue = json['description'];
+    if (descValue != null && descValue is String) {
+      description = descValue;
+    }
+
     return MailChannel(
       id: json['id'] as int,
       name: json['name'] as String,
       channelType: json['channel_type'] as String,
       public: json['public'] as String? ?? 'private',
-      description: json['description'] as String?,
+      description: description,
       membersPartnerIds: membersIds ?? [],
       channelPartnerIds: membersIds,
       groupIds: (json['group_ids'] as List<dynamic>?)
@@ -78,6 +85,8 @@ class MailChannel {
   }
 
   bool get isDirectMessage => channelType == 'chat';
+  bool get isChannel => channelType == 'channel';
+  bool get isGroup => channelType == 'group';
   bool get isPublic => public == 'public';
   bool get isPrivate => public == 'private';
 }

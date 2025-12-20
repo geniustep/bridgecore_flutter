@@ -315,9 +315,9 @@ final messages = await conversations.getChannelMessages(
   offset: 0,
 );
 
-// Send a message to channel
+// Send a message to channel (Odoo 18 uses discuss.channel, older versions use mail.channel)
 final result = await conversations.sendMessage(
-  model: 'mail.channel',
+  model: 'discuss.channel', // or 'mail.channel' for older Odoo versions
   resId: 123,
   body: '<p>Hello everyone!</p>',
 );
@@ -713,9 +713,9 @@ MessageListResponse messages = await conversations.getChannelMessages(
   offset: 0,
 );
 
-// Send message
+// Send message (Odoo 18 uses discuss.channel, older versions use mail.channel)
 SendMessageResponse result = await conversations.sendMessage(
-  model: 'mail.channel',
+  model: 'discuss.channel', // or 'mail.channel' for older Odoo versions
   resId: 123,
   body: '<p>Hello!</p>',
   partnerIds: [1, 2, 3],  // Optional

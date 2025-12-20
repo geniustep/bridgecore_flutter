@@ -24,9 +24,9 @@ import 'models/conversation_responses.dart';
 /// // Get channel messages
 /// final messages = await conversations.getChannelMessages(channelId: 123);
 ///
-/// // Send a message
+/// // Send a message (Odoo 18 uses discuss.channel, older versions use mail.channel)
 /// final result = await conversations.sendMessage(
-///   model: 'mail.channel',
+///   model: 'discuss.channel', // or 'mail.channel' for older Odoo versions
 ///   resId: 123,
 ///   body: 'Hello!',
 /// );
@@ -163,9 +163,9 @@ class ConversationService {
   ///
   /// Example:
   /// ```dart
-  /// // Send message to channel
+  /// // Send message to channel (Odoo 18 uses discuss.channel, older versions use mail.channel)
   /// final result = await conversations.sendMessage(
-  ///   model: 'mail.channel',
+  ///   model: 'discuss.channel', // or 'mail.channel' for older Odoo versions
   ///   resId: 123,
   ///   body: '<p>Hello everyone!</p>',
   ///   partnerIds: [1, 2, 3], // Optional: specific recipients
@@ -180,7 +180,7 @@ class ConversationService {
   ///
   /// // Reply to a message
   /// final result = await conversations.sendMessage(
-  ///   model: 'mail.channel',
+  ///   model: 'discuss.channel', // or 'mail.channel' for older Odoo versions
   ///   resId: 123,
   ///   body: '<p>Reply message</p>',
   ///   parentId: 789, // Parent message ID
@@ -216,12 +216,15 @@ class ConversationService {
   /// ⚠️ Important: Uses Odoo's channel_get method (same as Discuss app)
   ///
   /// This is equivalent to Odoo's:
-  /// - discuss.channel.channel_get(partners_to=[196], force_open=true)
+  /// - discuss.channel.channel_get(partners_to=[196], force_open=true) (Odoo 18)
+  /// - mail.channel.channel_get(partners_to=[196]) (older Odoo versions)
   ///
   /// Example:
   /// ```dart
   /// final channel = await conversations.getOrCreateDmChannel([196]);
-  /// final channelId = channel['discuss.channel'][0]['id'];
+  /// // Odoo 18 returns: channel['discuss.channel'][0]['id']
+  /// // Older versions return: channel['mail.channel'][0]['id']
+  /// final channelId = channel['discuss.channel']?[0]?['id'] ?? channel['mail.channel']?[0]?['id'];
   /// ```
   Future<Map<String, dynamic>> getOrCreateDmChannel(
     List<int> partnerIds,
